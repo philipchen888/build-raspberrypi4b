@@ -1,0 +1,85 @@
+Build buster-xfce-kde-gnome sdcard for raspberrypi4b:
+
+Input files: ../kernel/out/boot.img
+             ../rootfs-buster/linaro-basicrootfs.img
+
+./mksdcardimg.sh
+
+The result is in sdcard.img
+
+sudo dd if=./sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
+
+Plugin sdcard to SBC
+mouse right click on the screen, select terminal emulator.
+Login:
+Username: linaro
+Password: linaro
+uname -a
+lsb_release -a
+sudo ifconfig
+sudo nmcli dev wifi connect "SSID" password "PASSWORD"
+sudo dpkg-reconfigure tzdata
+sudo dpkg-reconfigure locales
+date
+sudo apt update
+sudo apt upgrade
+sync
+sudo rm /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml
+sudo apt install tasksel
+sudo tasksel --list-tasks
+For xfce4: sudo tasksel install xfce-desktop  ( then sudo apt remove --purge openbox )
+For kde:   sudo tasksel install kde-desktop   ( then sudo apt remove --purge openbox )
+For gnome: sudo tasksel install gnome-desktop ( then sudo apt remove --purge openbox )
+sync
+sudo shutdown -h now
+Power off, power on.
+Disable power saving and screen saver.
+glxinfo | grep OpenGL
+date
+
+sudo apt install speedtest-cli build-essential libjpeg-dev libpng-dev libpng16-16 pkg-config libx11-dev python3-pip python3-setuptools chromium chromium-sandbox ffmpeg mpv git
+
+speedtest-cli
+
+git clone https://github.com/glmark2/glmark2.git -b 2021.02
+cd glmark2
+./waf configure --with-flavors=x11-glesv2
+./waf
+sudo ./waf install
+
+Install mesa and drm:
+cd ~/
+sudo apt-get remove meson
+sudo pip3 install meson mako setuptools
+sudo vi /etc/apt/sources.list.d/raspi.list ( add deb-src http://archive.raspberrypi.org/debian/ buster main)
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 7FA3303E
+sudo apt-get update
+sudo apt-get build-dep mesa -y  ( ignore errors )
+sudo vi /etc/apt/sources.list.d/raspi.list ( comment out first line )
+git clone --depth=1 -b mesa-19.3.2 https://gitlab.freedesktop.org/mesa/mesa/
+cd mesa; mkdir build; cd build;
+sudo apt-get install libxcb-randr0-dev libxrandr-dev libxcb-xinerama0-dev libxinerama-dev libxcursor-dev libxcb-cursor-dev libxkbcommon-dev xutils-dev xutils-dev libpthread-stubs0-dev libpciaccess-dev libffi-dev x11proto-xext-dev libxcb1-dev bison flex libssl-dev libgnutls28-dev x11proto-dri2-dev x11proto-dri3-dev libx11-dev libxcb-glx0-dev libx11-xcb-dev libxext-dev libxdamage-dev libxfixes-dev libva-dev x11proto-randr-dev x11proto-present-dev libclc-dev libelf-dev git build-essential mesa-utils libvulkan-dev ninja-build libvulkan1 python-mako libdrm-dev libxshmfence-dev libxxf86vm-dev libunwind-dev vulkan-tools vulkan-utils ninja-build libxcb-*dev wayland-protocols libwayland-egl-backend-dev gettext libexpat1-dev
+
+sudo meson --prefix="/usr" ..
+sudo ninja install
+cd ~/
+git clone --depth=1 https://gitlab.freedesktop.org/mesa/drm
+cd drm; mkdir build; cd build;
+sudo meson --prefix="/usr" ..
+sudo ninja install
+sync
+sudo reboot
+glxinfo |grep OpenGL
+glmark2-es2
+
+Chromium -> youtube.com -> search YmDNhi07_Ho
+
+pip3 install --no-deps -U yt-dlp
+~/.local/bin/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' hyUhEjtlDLA -o avemaria.mp4
+mpv avemaria.mp4
+
+Plugin bluetooth usb dongle to SBC.
+sudo rfkill list
+hciconfig hci0
+hcitool dev
+hciconfig -a

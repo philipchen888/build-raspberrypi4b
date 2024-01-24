@@ -1,0 +1,103 @@
+Build android sdcard image for raspberrypi4b.
+
+   See https://raspberrytips.com/android-raspberry-pi-4/
+   Here are the required steps to install Android on Raspberry Pi:
+
+    Download the LineageOS version for Raspberry Pi from Konstakang.
+    Download Google Apps and save it on a USB memory stick.
+    Flash the custom image to an SD card and start the Raspberry Pi.
+    Reboot in recovery mode to install the Google Apps.
+
+   Download from https://konstakang.com/devices/rpi4/AOSP13
+   AOSP13-20230615-KonstaKANG-rpi4.zip
+   AOSP13-20230615-KonstaKANG-rpi4-ota.zip
+   unzip AOSP13-20230615-KonstaKANG-rpi4.zip
+
+   sudo dd if=./AOSP13-20230615-KonstaKANG-rpi4.img of=/dev/sda bs=4096 conv=notrunc,fsync
+   Eject sdcard, plugin sdcard to SBC.
+   After setting up android, turn on developer mode.
+   Settings -> About tablet -> hit build number several times
+   Settings -> System -> Raspberry Pi settings -> ADB ( turn on ) 
+   Shutdown android ( click F5 ).
+   Download Google Play Store from https://sourceforge.net/projects/nikgapps/
+   wget https://sourceforge.net/projects/nikgapps/files/Config-Releases/NikGapps-T/13-Aug-2023/NikGapps-Basic-arm64-13-20230813.zip/download
+   mv download NikGapps-Basic-arm64-13-20230813.zip
+   Plugin USB memory stick to host PC.
+   cp AOSP13-20230615-KonstaKANG-rpi4-ota.zip /media/$USER/62B3-9D15/
+   cp NikGapps-Basic-arm64-13-20230813.zip /media/$USER/62B3-9D15/
+   sync
+   Eject USB memory stick, and plug it to SBC.
+   Boot to TWRP recovery: Settings -> System -> Raspberry Pi settings -> Reboot to recovery -> F5 ( shutdown ) -> power on.
+   Install AOSP13-20230615-KonstaKANG-rpi4-ota.zip from your selected storage:
+   Install -> Select Storage -> USB -> OK -> AOSP13-20230615-KonstaKANG-rpi4-ota.zip -> swipe -> back -> Install NikGapps-Basic-arm64-13-20230813.zip -> swipe -> Reboot -> system
+
+   Enable sound: Settings -> System -> Raspberry Pi settings -> Audio device (HDMI0).
+
+   When run Google Play Store, Got the device is not certified to run Google apps.
+   See https://storage.googleapis.com/play_public/supported_devices.html
+   Download Device ID apk from https://www.apkmirror.com/apk/evozi/device-id/device-id-1-3-2-release/
+   cp ~/Downloads/'com.evozi.deviceid_1.3.2-8_minAPI14(nodpi).apk' deviceid.apk
+   Install deviceid.apk: 
+   Settings -> System -> Raspberry Pi settings -> ADB ( turn on ), then see bellow to install deviceid.apk. 
+   Open the Device ID app, and it will display the code for Google Service Framework (GSF). Click on it and “copy” the code.
+   Open https://google.com/android/uncertified on your Raspberry Pi and paste the GSF code. After that, click on “Register“
+   Wait for 20 minutes. Shutdown android ( click F5 ). Power on.
+   Open Google Play Store -> sign in. Install YouTube, Solitaire etc.
+
+
+Plugin sdcard to SBC.
+After setting up android, turn on developer mode.
+Settings -> About tablet -> hit build number several times
+Settings -> System -> Raspberry Pi settings -> ADB ( turn on )
+F5 -> Power off. Power on.
+
+adb devices -l
+adb connect 192.168.86.xxx
+adb root
+adb connect 192.168.86.xxx
+adb shell
+du -h /system
+mount -o rw,remount /
+exit
+
+To install apks:
+adb push helloworld.apk /sdcard
+adb push happybirthday.apk /sdcard
+adb push diceroller.apk /sdcard
+adb push drawing.apk /sdcard
+adb push drawshape.apk /sdcard
+adb push kaleidoscope.apk /sdcard
+adb push myanalogclock.apk /sdcard
+adb push randomsong.apk /sdcard
+adb shell
+cd /system/priv-app
+ln -s /sdcard/helloworld.apk .
+ln -s /sdcard/happybirthday.apk .
+ln -s /sdcard/diceroller.apk .
+ln -s /sdcard/drawing.apk .
+ln -s /sdcard/drawshape.apk .
+ln -s /sdcard/kaleidoscope.apk .
+ln -s /sdcard/myanalogclock.apk .
+ln -s /sdcard/randomsong.apk .
+exit
+adb install -r helloworld.apk
+adb install -r happybirthday.apk
+adb install -r diceroller.apk
+adb install -r drawing.apk
+adb install -r drawshape.apk
+adb install -r kaleidoscope.apk
+adb install -r myanalogclock.apk
+adb install -r randomsong.apk
+adb shell
+mount -o ro,remount /
+exit
+
+To uninstall apks:
+adb uninstall com.example.helloworld
+adb uninstall com.example.happybirthday
+adb uninstall com.example.diceroller
+adb uninstall com.example.drawing
+adb uninstall com.example.drawshape
+adb uninstall com.example.kaleidoscope
+adb uninstall com.example.myanalogclock
+adb uninstall com.example.randomsong

@@ -1,0 +1,87 @@
+Build yocto xfce-desktop sdcard image for raspberrypi4b:
+
+   mkdir ${HOME}/download
+   mkdir ${HOME}/sstate-cache
+   git clone git://git.yoctoproject.org/poky --depth=1 -b kirkstone
+   cd poky
+   git clone git://git.openembedded.org/meta-openembedded.git --depth=1 -b kirkstone
+   git clone git://git.yoctoproject.org/meta-raspberrypi.git --depth=1 -b kirkstone
+   source oe-init-build-env
+   cd ../../
+   make apply_patches
+
+   cd poky; source oe-init-build-env;
+   bitbake -s
+   bitbake -c cleansstate xfce-desktop-image
+   bitbake -k xfce-desktop-image
+
+   The result is in ./tmp/deploy/images/raspberrypi4-64/xfce-desktop-image-raspberrypi4-64.wic.bz2
+   bzip2 -d -f ./tmp/deploy/images/raspberrypi4-64/xfce-desktop-image-raspberrypi4-64.wic.bz2
+   sudo dd if=./tmp/deploy/images/raspberrypi4-64/xfce-desktop-image-raspberrypi4-64.wic of=/dev/sda bs=4096 conv=notrunc,fsync
+
+   Eject sdcard. Plugin sdcard again.
+   sudo vi /media/$USER/boot/config.txt ( delete dtparam=i2c1=on dtoverlay=vc4-kms-v3d, add
+   dtparam=audio=on
+   dtparam=i2c_arm=on
+   dtparam=spi=on
+   enable_uart=1
+   dtoverlay=vc4-fkms-v3d
+   max_framebuffers=2
+   dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4
+   dtoverlay=uart2 )
+
+   sudo vi /media/$USER/boot/cmdline.txt ( change to:
+   console=serial0,115200 console=tty1 root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait quiet init=/sbin/init
+
+   sudo vi /media/$USER/*/etc/network/interfaces ( delete everything after iface lo inet loopback )
+   sync
+   Eject sdcard.
+
+   \rm -rf ./tmp/work
+
+plugin sdcard to SBC
+login:
+username: root
+password: rock
+
+nmcli dev wifi connect "SSID" password "PASSWORD"
+
+\rm /etc/localtime
+ln -s /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
+date
+
+adduser linaro
+usermod -aG sudo linaro
+
+aplay -l
+vi /etc/asound.conf ( add
+pcm.!default {
+type hw
+card 0
+}
+ctl.!default {
+type hw
+card 0
+}
+
+To disable screen blank:
+vi /etc/rc.local ( add
+#!/bin/sh
+/usr/bin/xset -dpms s off s noblank s 0 0 s noexpose
+
+chmod 755 /etc/rc.local
+sync
+reboot
+
+source /etc/rc.local
+
+glmark2-es2
+
+aplay /home/linaro/yoursong.wav
+mpv --no-video /home/linaro/yoursong.mp3
+mpv /home/linaro/yourvideo.mp4
+
+rfkill unblock all
+hciconfig hci0 up
+hciconfig -a
+hcitool dev

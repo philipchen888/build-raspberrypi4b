@@ -1,0 +1,53 @@
+Build buildroot sdcard image for raspberrypi4b:
+
+   git clone git://git.buildroot.net/buildroot
+   cp ./patches/rpi4b_defconfig ./buildroot/configs
+   cp ./patches/raspberrypi4/* ./buildroot/board/raspberrypi4/
+   cd buildroot
+   \rm .config
+   make clean
+   make rpi4b_defconfig
+   make
+
+   The result is in ./output/images/sdcard.img
+
+   sudo dd if=./output/images/sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
+
+   Eject sdcard. Plugin sdcard again.
+   sudo vi /media/$USER/rootfs/etc/network/interfaces ( delete everything after iface lo inet loopback )
+   sudo vi /media/$USER/rootfs/etc/vsftpd.conf ( anonymous_enable=NO, local_enable=YES, write_enable=YES )
+   sync
+   Eject sdcard.
+
+plugin sdcard to SBC
+login:
+username: root
+password: linaro
+
+ifconfig wlan0 up
+wpa_passphrase your_SSID your_passphrase > /etc/ssid.conf
+wpa_supplicant -B -i wlan0 -c /etc/ssid.conf
+dhcpcd wlan0
+ifconfig
+
+adduser linaro
+
+date
+aplay -l
+vi /etc/asound.conf ( add
+pcm.!default {
+type hw
+card 0
+}
+ctl.!default {
+type hw
+card 0
+}
+
+aplay /home/linaro/yoursong.wav
+mpg123 -a hw:0,0 /home/linaro/yoursong.mp3
+mpv --no-video /home/linaro/yoursong.mp3
+
+hciconfig hci0 up
+hciconfig -a
+hcitool dev
