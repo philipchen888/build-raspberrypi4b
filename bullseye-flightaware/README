@@ -5,7 +5,7 @@ Parts required:
 2. Band-Pass SMA Filter.
 3. ADS-B 1090MHz PRO USB Stick.
 
-Input files: ../linux/out/boot.img
+Input files: ../uboot/out/boot.img
              ../rootfs-bullseye/linaro-rootfs.img
 
 ./mksdcardimg.sh
@@ -13,7 +13,7 @@ Input files: ../linux/out/boot.img
 The result is in sdcard.img
 
 sudo dd if=./sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
-Eject sdcard, plugin sdcard, cp ./flightaware/* /media/$USER/b*/home/linaro
+Eject sdcard, plugin sdcard, cp ./flightaware/* /media/$USER/rootfs/home/linaro
 sync
 Eject sdcard
 

@@ -1,11 +1,10 @@
 export BOARD=rpi4b
 export LB_BOOTSTRAP_INCLUDE="apt-transport-https gnupg"
-export KERNEL=kernel7l
-export ARCH=arm
-export CROSS_COMPILE=/usr/local/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+export ARCH=arm64
+export CROSS_COMPILE=/usr/local/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
 
 rootfs: clean prebuild buildrootfs postbuild mkimage
-basicrootfs: clean prebuild buildbasicrootfs postbuildbasic mkbasicimage
+basicrootfs: clean prebuild buildbasicrootfs postbuild mkbasicimage
 
 clean:
 	sudo lb clean --purge
@@ -21,14 +20,14 @@ prebuild:
 	--apt-indices false \
 	--apt-recommends false \
 	--apt-secure false \
-	--architectures armhf \
+	--architectures arm64 \
 	--archive-areas 'main contrib non-free' \
 	--backports false \
 	--binary-filesystem ext4 \
 	--binary-images tar \
 	--bootappend-live "hostname=linaro-alip username=linaro" \
-	--bootstrap-qemu-arch armhf \
-	--bootstrap-qemu-static /usr/bin/qemu-arm-static \
+	--bootstrap-qemu-arch arm64 \
+	--bootstrap-qemu-static /usr/bin/qemu-aarch64-static \
 	--cache false \
 	--chroot-filesystem none \
 	--compression gzip \
@@ -55,10 +54,7 @@ buildbasicrootfs:
 	sudo lb build
 
 postbuild:
-	ARCH=armhf $(PWD)/../mk-rootfs-buster.sh
-
-postbuildbasic:
-	ARCH=armhf $(PWD)/../mk-rootfs-busterbasic.sh
+	ARCH=arm64 $(PWD)/../mk-rootfs-buster.sh
 
 mkimage:
 	$(PWD)/../mk-image.sh

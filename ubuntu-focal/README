@@ -1,6 +1,6 @@
 Build ubuntu-focal sdcard for raspberrypi4b:
 
-Input files: ../linux/out/boot.img
+Input files: ../uboot/out/boot.img
              ../rootfs-ubuntu-focal/linaro-rootfs.img
 
 ./mksdcardimg.sh
@@ -31,13 +31,21 @@ sync
 sudo shutdown -h now
 Power off, power on
 Disable power saving and screen saver.
+ps aux | grep -i apt ( wait till all apt done except grep -i apt )
 glxinfo | grep OpenGL
 date
 
 sudo apt install python3-pip python3-setuptools mpv speedtest-cli glmark2-es2 ffmpeg
+
 speedtest-cli
+
 glmark2-es2
+
+aplay -l
+pavucontrol  ( select card 0 as default )
+
 Firefox -> youtube.com -> search YmDNhi07_Ho
+
 pip3 install --no-deps -U yt-dlp
 ~/.local/bin/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4
 mpv swan.mp4

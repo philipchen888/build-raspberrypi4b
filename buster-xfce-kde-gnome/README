@@ -72,6 +72,9 @@ sudo reboot
 glxinfo |grep OpenGL
 glmark2-es2
 
+aplay -l
+pavucontrol  ( select card 0 as default )
+
 Chromium -> youtube.com -> search YmDNhi07_Ho
 
 pip3 install --no-deps -U yt-dlp

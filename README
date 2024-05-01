@@ -32,7 +32,7 @@ Steps to build raspberrypi4b sdcard image:
 
 4. cd ~/build-raspberrypi4b/linux  ( Compile mainline kernel )
    git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.1.y
-   cp bcm2711_defconfig ./linux/arch/arm/configs/
+   vi ./linux/arch/arm/configs/bcm2711_defconfig ( change CONFIG_I2C_CHARDEV=m to CONFIG_I2C_CHARDEV=y )
    cd linux; mkdir tmp; cd tmp; mkdir lib;
    cd ../../; mkdir out;
 

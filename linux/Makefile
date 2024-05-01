@@ -1,8 +1,8 @@
-export KERNEL=kernel7l
+export KERNEL=kernel8
 export OUT=$(PWD)/out
 export BOOT=$(OUT)/boot.img
-export ARCH=arm
-export CROSS_COMPILE=/usr/local/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+export ARCH=arm64
+export CROSS_COMPILE=/usr/local/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
 
 clean:
 	cd linux; \
@@ -13,9 +13,9 @@ kernel: buildkernel postbuildkernel
 buildkernel:
 	cd linux; \
 	sudo make mrproper; \
-	make ARCH=arm bcm2711_defconfig; \
-	make ARCH=arm all -j4; \
-	sudo make ARCH=arm INSTALL_MOD_PATH=./tmp modules_install
+	make ARCH=arm64 bcm2711_defconfig; \
+	make ARCH=arm64 all -j4; \
+	sudo make ARCH=arm64 INSTALL_MOD_PATH=./tmp modules_install
 
 postbuildkernel:
 	cd linux; \
@@ -27,7 +27,7 @@ postbuildkernel:
 	mcopy -i ${BOOT} -s ../firmware/bootcode.bin ::; \
 	mcopy -i ${BOOT} -s ../firmware/cmdline.txt ::; \
 	mcopy -i ${BOOT} -s ../firmware/config.txt ::; \
-	mcopy -i ${BOOT} -s ./arch/arm/boot/Image ::/kernel7l.img; \
-	mcopy -i ${BOOT} -s ./arch/arm/boot/dts/bcm2711-rpi-4-b.dtb ::; \
-	mcopy -i ${BOOT} -s ./arch/arm/boot/dts/overlays/*.dtb* ::/overlays; \
-	mcopy -i ${BOOT} -s ./arch/arm/boot/dts/overlays/README ::/overlays
+	mcopy -i ${BOOT} -s ./arch/arm64/boot/Image ::/kernel8.img; \
+	mcopy -i ${BOOT} -s ./arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dtb ::; \
+	mcopy -i ${BOOT} -s ./arch/arm64/boot/dts/overlays/*.dtb* ::/overlays; \
+	mcopy -i ${BOOT} -s ./arch/arm64/boot/dts/overlays/README ::/overlays

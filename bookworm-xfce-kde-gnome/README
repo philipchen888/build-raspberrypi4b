@@ -1,6 +1,6 @@
 Build bookworm-xfce-kde-gnome sdcard for raspberrypi4b:
 
-Input files: ../linux/out/boot.img
+Input files: ../uboot/out/boot.img
              ../rootfs-bookworm/linaro-basicrootfs.img
 
 ./mksdcardimg.sh
@@ -42,6 +42,9 @@ sudo apt install speedtest-cli libjpeg-dev libpng-dev libpng16-16 pkg-config lib
 speedtest-cli
 
 glmark2
+
+aplay -l
+pavucontrol  ( select card 0 as default )
 
 Chromium -> youtube.com -> search YmDNhi07_Ho
 

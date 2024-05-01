@@ -1,6 +1,6 @@
 Build ubuntu-jammy sdcard for raspberrypi4b:
 
-Input files: ../linux/out/boot.img
+Input files: ../uboot/out/boot.img
              ../rootfs-ubuntu-jammy/linaro-rootfs.img
 
 ./mksdcardimg.sh
@@ -9,7 +9,7 @@ The result is in sdcard.img
 
 sudo dd if=./sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
 Eject sdcard, plugin sdcard again.
-sudo vi /media/$USER/b*/etc/gdm3/custom.conf ( uncomment WaylandEnable=false )
+sudo vi /media/$USER/rootfs/etc/gdm3/custom.conf ( uncomment WaylandEnable=false )
 sync
 Eject sdcard
 
@@ -40,6 +40,7 @@ HandleLidSwitch=ignore
 sync
 sudo shutdown -h now
 Power off, power on
+ps aux | grep -i apt ( wait till all apt done except grep -i apt )
 glxinfo | grep OpenGL
 date
 
@@ -48,6 +49,9 @@ sudo apt install speedtest-cli libjpeg-dev libpng-dev libpng16-16 pkg-config lib
 speedtest-cli
 
 glmark2-es2
+
+aplay -l
+pavucontrol  ( select card 0 as default )
 
 firefox -> youtube.com -> search YmDNhi07_Ho
 

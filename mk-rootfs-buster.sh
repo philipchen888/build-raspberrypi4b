@@ -64,7 +64,6 @@ dpkg -i /packages/rpiwifi/firmware-brcm80211_20210315-3_all.deb
 cp /packages/rpiwifi/brcmfmac43455-sdio.txt /lib/firmware/brcm/
 apt-get install -f -y
 
-systemctl enable rockchip.service
 systemctl enable resize-helper
 
 #---------------Clean--------------

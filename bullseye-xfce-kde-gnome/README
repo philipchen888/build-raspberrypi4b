@@ -1,6 +1,6 @@
 Build bullseye-xfce-kde-gnome sdcard for raspberrypi4b:
 
-Input files: ../linux/out/boot.img
+Input files: ../uboot/out/boot.img
              ../rootfs-bullseye/linaro-basicrootfs.img
 
 ./mksdcardimg.sh
@@ -47,6 +47,9 @@ cd glmark2
 ./waf
 sudo ./waf install
 glmark2-es2
+
+aplay -l
+pavucontrol  ( select card 0 as default )
 
 Chromium -> youtube.com -> search YmDNhi07_Ho
 

@@ -14,7 +14,7 @@ The following 8 pn532nfc tests are included:
 7. updatendef     ( write read mifareclassic_ndef )
 8. ndeftoclassic  ( change mifareclassic_ndef to mifareclassic )
 
-Input files: ../linux/out/boot.img
+Input files: ../uboot/out/boot.img
              ../rootfs-bullseye/linaro-rootfs.img
 
 ./mksdcardimg.sh
@@ -22,7 +22,7 @@ Input files: ../linux/out/boot.img
 The result is in sdcard.img
 
 sudo dd if=./sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
-Eject sdcard, plugin sdcard, cp ./pn532nfc/* /media/$USER/b*/home/linaro
+Eject sdcard, plugin sdcard, cp ./pn532nfc/* /media/$USER/rootfs/home/linaro
 sync
 Eject sdcard
 
@@ -44,11 +44,26 @@ Power off, power on
 Disable power saving and screen saver.
 date
 
-sudo apt install build-essential python3-pip python3-setuptools python3-dev python3-smbus
-sudo pip3 install spidev serial pyserial python-periphery smbus2
+Install raspi-config:
+wget https://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20211019_all.deb
+sudo apt -y install libnewt0.52 whiptail parted triggerhappy lua5.1 alsa-utils
+sudo apt install -fy
+sudo dpkg -i ./raspi-config_20211019_all.deb
+sudo raspi-config  ( Interface Options -> I2C -> Yes -> Ok -> Finish )
 
-wget https://project-downloads.drogon.net/wiringpi-latest.deb
-sudo dpkg -i wiringpi-latest.deb
+sudo apt -y install build-essential python3-pip python3-setuptools python3-dev python3-smbus
+sudo pip3 install spidev serial pyserial python-periphery smbus2 
+
+wget https://github.com/WiringPi/WiringPi/archive/refs/tags/3.2.zip
+unzip 3.2.zip
+cd WiringPi-3.2
+./build
+gpio -v
+
+Check kernel driver readiness:
+ls /dev  ( look for i2c-1, spidev0.0 )
+sudo cat /proc/device-tree/soc/i2c@7e804000/status  ( i2c-1 )
+sudo cat /proc/device-tree/soc/spi@7e204000/status  ( spi-0 )
 
 -----------------------------------------------------------------------------
 

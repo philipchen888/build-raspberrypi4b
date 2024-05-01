@@ -1,7 +1,7 @@
 export BOARD=rpi4b
 export LB_BOOTSTRAP_INCLUDE="apt-transport-https gnupg"
-export ARCH=arm
-export CROSS_COMPILE=/usr/local/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+export ARCH=arm64
+export CROSS_COMPILE=/usr/local/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
 
 rootfs: clean prebuild buildrootfs postbuild mkimage
 
@@ -19,14 +19,14 @@ prebuild:
 	--apt-indices false \
 	--apt-recommends false \
 	--apt-secure false \
-	--architectures armhf \
+	--architectures arm64 \
 	--archive-areas 'main restricted universe multiverse' \
 	--backports false \
 	--binary-filesystem ext4 \
 	--binary-images tar \
 	--bootappend-live "hostname=linaro-alip username=linaro" \
-	--bootstrap-qemu-arch armhf \
-	--bootstrap-qemu-static /usr/bin/qemu-arm-static \
+	--bootstrap-qemu-arch arm64 \
+	--bootstrap-qemu-static /usr/bin/qemu-aarch64-static \
 	--cache false \
 	--chroot-filesystem none \
 	--compression gzip \
@@ -53,7 +53,7 @@ buildrootfs:
 	sudo lb build
 
 postbuild:
-	ARCH=armhf $(PWD)/../mk-rootfs-ubuntu.sh
+	ARCH=arm64 $(PWD)/../mk-rootfs-ubuntu.sh
 
 mkimage:
 	$(PWD)/../mk-image.sh
