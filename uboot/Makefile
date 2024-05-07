@@ -15,7 +15,7 @@ builduboot:
 boot:
 	mkimage -A arm64 -O linux -T script -C none -d boot_cmd.txt $(OUT)/boot.scr.uimg; \
 	\rm -f $(BOOT); \
-	mkfs.vfat -n "boot" -S 512 -C ${BOOT} 512000; \
+	mkfs.vfat -n "boot" -S 512 -C ${BOOT} 65536; \
 	mmd -i ${BOOT} ::/overlays; \
 	mcopy -i ${BOOT} -s $(OUT)/boot.scr.uimg ::; \
 	mcopy -i ${BOOT} -s ./config.txt ::; \
@@ -25,19 +25,4 @@ boot:
 	mcopy -i ${BOOT} -s ./firmware/boot/start4.elf ::; \
 	mcopy -i ${BOOT} -s ../linux/linux/arch/arm64/boot/Image ::; \
 	mcopy -i ${BOOT} -s ../linux/linux/arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dtb ::; \
-	mcopy -i ${BOOT} -s ../linux/linux/arch/arm64/boot/dts/overlays/* ::/overlays
-
-bootbuster:
-	mkimage -A arm64 -O linux -T script -C none -d boot_cmd.txt $(OUT)/boot.scr.uimg; \
-	\rm -f $(BOOTBUSTER); \
-	mkfs.vfat -n "boot" -S 512 -C ${BOOTBUSTER} 512000; \
-	mmd -i ${BOOTBUSTER} ::/overlays; \
-	mcopy -i ${BOOTBUSTER} -s $(OUT)/boot.scr.uimg ::; \
-	mcopy -i ${BOOTBUSTER} -s ./config.txt ::; \
-	mcopy -i ${BOOTBUSTER} -s ./cmdline.txt ::; \
-	mcopy -i ${BOOTBUSTER} -s ./u-boot/u-boot.bin ::; \
-	mcopy -i ${BOOTBUSTER} -s ./firmware/boot/fixup4.dat ::; \
-	mcopy -i ${BOOTBUSTER} -s ./firmware/boot/start4.elf ::; \
-	mcopy -i ${BOOTBUSTER} -s ../kernel/linux/arch/arm64/boot/Image ::; \
-	mcopy -i ${BOOTBUSTER} -s ../kernel/linux/arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dtb ::; \
-	mcopy -i ${BOOTBUSTER} -s ../kernel/linux/arch/arm64/boot/dts/overlays/* ::/overlays
+	mcopy -i ${BOOT} -s ../linux/linux/arch/arm64/boot/dts/overlays/*.dtb* ::/overlays

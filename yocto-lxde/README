@@ -18,9 +18,10 @@ Build yocto lxde-desktop sdcard image for raspberrypi4b:
 
    The result is in ./tmp/deploy/images/raspberrypi4-64/core-image-x11-raspberrypi4-64.wic.bz2
    bzip2 -d -f ./tmp/deploy/images/raspberrypi4-64/core-image-x11-raspberrypi4-64.wic.bz2
+   Plugin SATA SSD to PC.
    sudo dd if=./tmp/deploy/images/raspberrypi4-64/core-image-x11-raspberrypi4-64.wic of=/dev/sda bs=4096 conv=notrunc,fsync
 
-   Eject sdcard. Plugin sdcard again.
+   Eject SATA SSD from PC. Plugin SATA SSD to PC again.
    sudo vi /media/$USER/boot/config.txt ( delete dtparam=i2c1=on, add
    dtparam=audio=on
    dtparam=i2c_arm=on
@@ -31,16 +32,13 @@ Build yocto lxde-desktop sdcard image for raspberrypi4b:
    dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4
    dtoverlay=uart2 )
 
-   sudo vi /media/$USER/boot/cmdline.txt ( change to:
-   console=serial0,115200 console=tty1 root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait quiet init=/sbin/init
-
    sudo vi /media/$USER/*/etc/network/interfaces ( delete everything after iface lo inet loopback )
    sync
-   Eject sdcard.
+   Eject SATA SSD from PC.
 
    \rm -rf ./tmp/work
 
-plugin sdcard to SBC
+Plugin SATA SSD to raspberrypi4b USB2 port.
 login:
 username: root
 password: rock

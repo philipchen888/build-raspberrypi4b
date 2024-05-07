@@ -21,12 +21,13 @@ Input files: ../uboot/out/boot.img
 
 The result is in sdcard.img
 
+Plugin SATA SSD to PC.
 sudo dd if=./sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
-Eject sdcard, plugin sdcard, cp ./pn532nfc/* /media/$USER/rootfs/home/linaro
+Eject SATA SSD from PC, plugin SATA SSD to PC again, cp ./pn532nfc/* /media/$USER/rootfs/home/linaro
 sync
-Eject sdcard
+Eject SATA SSD from PC.
 
-Plugin sdcard to SBC
+Plugin SATA SSD to raspberrypi4b USB2 port.
 Login:
 Username: linaro
 Password: linaro

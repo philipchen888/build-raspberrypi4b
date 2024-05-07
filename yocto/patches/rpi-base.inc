@@ -6,7 +6,7 @@ SOC_FAMILY = "rpi"
 include conf/machine/include/soc-family.inc
 
 IMAGE_FSTYPES ?= "tar.bz2 ext3 wic.bz2 wic.bmap"
-WKS_FILE ?= "sdimage-raspberrypi.wks"
+WKS_FILE ?= "sdimage-raspberrypi-gpt.wks"
 
 XSERVER = " \
     xserver-xorg \
@@ -81,7 +81,7 @@ MACHINE_FEATURES += "apm usbhost keyboard vfat ext2 screen touchscreen alsa blue
 # Raspberry Pi has no hardware clock
 MACHINE_FEATURES_BACKFILL_CONSIDERED = "rtc"
 
-MACHINE_EXTRA_RRECOMMENDS += "kernel-modules udev-rules-rpi"
+MACHINE_EXTRA_RRECOMMENDS += "kernel-modules udev-rules-rpi resize-helper"
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "${@oe.utils.conditional('ENABLE_I2C', '1', 'kernel-module-i2c-dev kernel-module-i2c-bcm2708', '', d)}"
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "${@oe.utils.conditional('ENABLE_IR', '1', 'kernel-module-gpio-ir kernel-module-gpio-ir-tx', '', d)}"
 

@@ -7,9 +7,12 @@ Input files: ../kernel/out/boot.img
 
 The result is in sdcard.img
 
+Plugin SATA SSD to PC.
 sudo dd if=./sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
+Eject SATA SSD from PC.
 
-Plugin sdcard to SBC
+Plugin SATA SSD to raspberrypi4b USB2 port.
+Plugin bluetooth usb dongle to SBC.
 mouse right click on the screen, select terminal emulator.
 Login:
 Username: linaro
@@ -25,7 +28,7 @@ sudo apt update
 sudo apt upgrade
 sync
 sudo rm /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml
-sudo apt install tasksel
+sudo apt -y install tasksel
 sudo tasksel --list-tasks
 For xfce4: sudo tasksel install xfce-desktop  ( then sudo apt remove --purge openbox )
 For kde:   sudo tasksel install kde-desktop   ( then sudo apt remove --purge openbox )
@@ -69,6 +72,7 @@ sudo meson --prefix="/usr" ..
 sudo ninja install
 sync
 sudo reboot
+date
 glxinfo |grep OpenGL
 glmark2-es2
 
@@ -81,7 +85,6 @@ pip3 install --no-deps -U yt-dlp
 ~/.local/bin/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' hyUhEjtlDLA -o avemaria.mp4
 mpv avemaria.mp4
 
-Plugin bluetooth usb dongle to SBC.
 sudo rfkill list
 hciconfig hci0
 hcitool dev

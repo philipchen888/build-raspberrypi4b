@@ -1,4 +1,5 @@
 Compile uboot:
+See https://github.com/u-boot/u-boot/blob/master/doc/usage/cmd/fatload.rst
 
 input files:
 	./boot_cmd.txt
@@ -19,8 +20,4 @@ make u-boot
 
 The result is in ./u-boot/u-boot.bin
 
-make boot
-make bootbuster
-
-The result is in ./out/boot.img
-                       bootbuster.img
+make boot ( The result is in ./out/boot.img )

@@ -10,7 +10,7 @@ import spidev
 import smbus
 
 pwm_period = 0.0
-port = "/dev/ttyAMA2"
+port = "/dev/ttyAMA1"
 
 bus = smbus.SMBus(1)
 

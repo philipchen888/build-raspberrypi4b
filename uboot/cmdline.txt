@@ -1,1 +1,1 @@
-console=serial0,115200 console=tty1 root=/dev/mmcblk0p2 rw rootfstype=ext4 elevator=deadline rootwait quiet init=/sbin/init
+console=serial0,115200 console=tty1 root=PARTUUID=b921b045-1d rw rootfstype=ext4 elevator=deadline rootwait quiet init=/sbin/init

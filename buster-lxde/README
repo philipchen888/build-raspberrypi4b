@@ -1,4 +1,5 @@
 Build buster-lxde sdcard for raspberrypi4b:
+Note: Buster uses kernel rpi-5.4.y which doesn't support uboot.
 
 Input files: ../kernel/out/boot.img
              ../rootfs-buster/linaro-rootfs.img
@@ -7,9 +8,12 @@ Input files: ../kernel/out/boot.img
 
 The result is in sdcard.img
 
+Plugin SATA SSD to PC.
 sudo dd if=./sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
+Eject SATA SSD from PC.
 
-Plugin sdcard to SBC
+Plugin SATA SSD to raspberrypi4b USB2 port.
+Plugin bluetooth usb dongle to SBC.
 Login:
 Username: linaro
 Password: linaro
@@ -39,6 +43,7 @@ cd glmark2
 sudo ./waf install
 
 Install mesa and drm:
+cd ~/
 sudo apt-get remove meson
 sudo pip3 install meson mako setuptools
 sudo vi /etc/apt/sources.list.d/raspi.list ( add deb-src http://archive.raspberrypi.org/debian/ buster main)
@@ -71,7 +76,6 @@ pip3 install --no-deps -U yt-dlp
 ~/.local/bin/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' hyUhEjtlDLA -o avemaria.mp4
 mpv avemaria.mp4
 
-Plugin bluetooth usb dongle to SBC.
 sudo rfkill list
 hciconfig hci0
 hcitool dev

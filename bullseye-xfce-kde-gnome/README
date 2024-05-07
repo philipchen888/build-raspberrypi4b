@@ -7,9 +7,11 @@ Input files: ../uboot/out/boot.img
 
 The result is in sdcard.img
 
+Plugin SATA SSD to PC.
 sudo dd if=./sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
+Eject SATA SSD from PC.
 
-Plugin sdcard to SBC
+Plugin SATA SSD to raspberrypi4b USB2 port.
 mouse right click on the screen, select terminal emulator.
 Login:
 Username: linaro
@@ -25,7 +27,7 @@ sudo apt update
 sudo apt upgrade
 sync
 sudo rm /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml
-sudo apt install tasksel
+sudo apt -y install tasksel
 sudo tasksel --list-tasks
 For xfce4: sudo tasksel install xfce-desktop  ( then sudo apt remove --purge openbox )
 For kde:   sudo tasksel install kde-desktop   ( then sudo apt remove --purge openbox )
