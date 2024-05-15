@@ -150,3 +150,5 @@ Steps to build raspberrypi4b sdcard image:
 27. cd ~/build-raspberrypi4b/baremetal-gpio  ( gpio test in baremetal )
 
 28. cd ~/build-raspberrypi4b/bookworm-uefi   ( Build bookworm-uefi image )
+
+29. cd ~/build-raspberrypi4b/fedora      ( Build fedora image )

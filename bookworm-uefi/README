@@ -42,8 +42,8 @@ Eject USB2 sata ssd from PC.
 Plugin USB2 sata ssd to rpi4b USB2 port. Unplug ethernet cable from rpi4b. Power on rpi4b.
 uname -a
 lsb_release -a
-sudo apt update; sudo apt upgrade; sudo apt install net-tools;
 sudo nmcli dev wifi connect "SSID" password "PASSWORD"
+sudo apt update; sudo apt upgrade; sudo apt install net-tools;
 
 sudo vi /etc/default/raspi-firmware-custom ( add
 dtparam=audio=on
@@ -95,7 +95,7 @@ cd linux;
 KERNEL=kernel8
 sudo make mrproper
 make ARCH=arm64 bcm2711_defconfig
-make ARCH=arm64 deb-pkg LOCALVERSION=-custom -j4
+make ARCH=arm64 deb-pkg LOCALVERSION=-custom -j4   ( It may take 5 hours to finish )
 ls -la ../*.deb
 sudo dpkg -i ../linux-image-6.6.30-v8-custom_6.6.30-gabc50146600e-2_arm64.deb
 sudo cp ./arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dtb /boot/firmware
@@ -103,7 +103,10 @@ sudo cp ./arch/arm64/boot/dts/overlays/*.dtb* /boot/firmware/overlays
 sudo cp ./arch/arm64/boot/dts/overlays/README /boot/firmware/overlays
 sync
 sudo shutdown -h now
-Power on rpi4b
+Power on rpi4b.
+
+uname -a
+lsb_release -a
 
 glmark2-es2
 
@@ -112,5 +115,9 @@ pavucontrol  ( select hdmi as default )
 
 Chromium -> youtube.com -> search YmDNhi07_Ho
 
-yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4
+git clone https://github.com/yt-dlp/yt-dlp.git
+cd yt-dlp
+make
+cd ../
+~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4
 mpv swan.mp4

@@ -1,0 +1,32 @@
+Build fedora sdcard image for raspberrypi4b:
+
+see https://docs.fedoraproject.org/en-US/quick-docs/raspberry-pi/#_installing_fedora_on_a_raspberry_pi_for_linux_users
+wget https://mirror.umd.edu/fedora/linux/releases/39/Workstation/aarch64/images/Fedora-Workstation-39-1.5.aarch64.raw.xz
+
+Plugin USB2 sata ssd to PC.
+cd ~/build-raspberrypi4b/fedora
+sudo ./mksdcardimg.sh
+sudo mkfs.vfat /dev/sda1
+sudo mkfs.ext4 /dev/sda2
+sudo mkfs.ext4 /dev/sda3
+sudo fdisk -l /dev/sda
+xzcat Fedora-Workstation-39-1.5.aarch64.raw.xz | sudo dd status=progress bs=4096 of=/dev/sda skip=256 seek=256 conv=notrunc,fsync 
+Unplug USB2 sata ssd from PC.
+
+Plugin USB2 sata ssd to rpi4b. Power on rpi4b.
+
+Disable power saving and screen saver.
+sudo dnf update --exclude=kernel*
+sudo reboot
+
+glmark2-es2-wayland
+
+sudo dnf install yt-dlp mpv rfkill speedtest-cli
+speedtest-cli
+yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' hyUhEjtlDLA -o avemaria.mp4
+mpv avemaria.mp4
+
+sudo rfkill list
+hciconfig hci0
+hcitool dev
+hciconfig -a
