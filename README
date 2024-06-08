@@ -151,4 +151,6 @@ Steps to build raspberrypi4b sdcard image:
 
 28. cd ~/build-raspberrypi4b/bookworm-uefi   ( Build bookworm-uefi image )
 
-29. cd ~/build-raspberrypi4b/fedora      ( Build fedora image )
+29. cd ~/build-raspberrypi4b/fedora          ( Build fedora image )
+
+30. cd ~/build-raspberrypi4b/ubuntu-uefi     ( Build ubuntu-uefi image )
