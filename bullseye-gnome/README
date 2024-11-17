@@ -1,7 +1,7 @@
-Build ubuntu-jammy sdcard for raspberrypi4b:
+Build bullseye-gnome sdcard for raspberrypi4b:
 
 Input files: ../uboot/out/boot.img  bootusb.img
-             ../rootfs-ubuntu-jammy/linaro-rootfs.img
+             ../rootfs-bullseye/linaro-rootfs.img
 
 Plugin sdcard/USB2-SATA-SSD to PC.
 sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
@@ -21,13 +21,6 @@ sudo dpkg-reconfigure locales
 date
 sudo apt update
 sudo apt upgrade
-sudo apt dist-upgrade
-sudo vi /etc/systemd/logind.conf ( change to follows:
-HandlePowerKey=ignore
-HandleSuspendKey=ignore
-HandleHibernateKey=ignore
-HandleLidSwitch=ignore
-)
 sync
 df .
 lsblk
@@ -42,9 +35,15 @@ echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2 glmark2-es2-wayland pandoc
+sudo apt install speedtest-cli build-essential libjpeg-dev libpng-dev libpng16-16 pkg-config libx11-dev python3-pip python3-setuptools chromium chromium-sandbox ffmpeg mpv git pandoc
 
 speedtest-cli --secure
+
+git clone https://github.com/glmark2/glmark2.git -b 2021.02
+cd glmark2
+./waf configure --with-flavors=x11-glesv2   ( wayland-glesv2 )
+./waf
+sudo ./waf install
 
 glmark2-es2-wayland  ( for wayland )
 glmark2-es2          ( for x11 )
@@ -52,7 +51,7 @@ glmark2-es2          ( for x11 )
 aplay -l
 pavucontrol  ( select card 0 as default )
 
-firefox -> youtube.com -> search YmDNhi07_Ho
+Chromium -> youtube.com -> search YmDNhi07_Ho
 
 git clone https://github.com/yt-dlp/yt-dlp.git
 cd yt-dlp

@@ -1,0 +1,2 @@
+fatload usb 0:1 ${kernel_addr_r} Image
+booti ${kernel_addr_r} - ${fdt_addr}

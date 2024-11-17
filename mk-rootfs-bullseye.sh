@@ -24,7 +24,10 @@ if [ ! -e live-image-$ARCH.tar.tar.gz ]; then
 fi
 
 finish() {
-	sudo umount $TARGET_ROOTFS_DIR/dev
+	sudo umount -lf $TARGET_ROOTFS_DIR/proc || true
+	sudo umount -lf $TARGET_ROOTFS_DIR/sys || true
+	sudo umount -lf $TARGET_ROOTFS_DIR/dev/pts || true
+	sudo umount -lf $TARGET_ROOTFS_DIR/dev || true
 	exit -1
 }
 trap finish ERR
@@ -38,16 +41,16 @@ sudo cp -rf ../linux/linux/tmp/lib/modules $TARGET_ROOTFS_DIR/lib
 sudo mkdir -p $TARGET_ROOTFS_DIR/packages
 sudo cp -rf ../packages/$ARCH/* $TARGET_ROOTFS_DIR/packages
 
-# overlay folder
-sudo cp -rf ../overlay/* $TARGET_ROOTFS_DIR/
-
 echo -e "\033[36m Change root.....................\033[0m"
 if [ "$ARCH" == "armhf" ]; then
 	sudo cp /usr/bin/qemu-arm-static $TARGET_ROOTFS_DIR/usr/bin/
 elif [ "$ARCH" == "arm64"  ]; then
 	sudo cp /usr/bin/qemu-aarch64-static $TARGET_ROOTFS_DIR/usr/bin/
 fi
+sudo mount -o bind /proc $TARGET_ROOTFS_DIR/proc
+sudo mount -o bind /sys $TARGET_ROOTFS_DIR/sys
 sudo mount -o bind /dev $TARGET_ROOTFS_DIR/dev
+sudo mount -o bind /dev/pts $TARGET_ROOTFS_DIR/dev/pts
 
 cat << EOF | sudo chroot $TARGET_ROOTFS_DIR
 
@@ -64,11 +67,13 @@ dpkg -i /packages/rpiwifi/firmware-brcm80211_20210315-3_all.deb
 cp /packages/rpiwifi/brcmfmac43455-sdio.txt /lib/firmware/brcm/
 apt-get install -f -y
 
-systemctl enable resize-helper
-
 #---------------Clean--------------
 rm -rf /var/lib/apt/lists/*
-
+sync
 EOF
 
-sudo umount $TARGET_ROOTFS_DIR/dev
+sudo umount -lf $TARGET_ROOTFS_DIR/proc || true
+sudo umount -lf $TARGET_ROOTFS_DIR/sys || true
+sudo umount -lf $TARGET_ROOTFS_DIR/dev/pts || true
+sudo umount -lf $TARGET_ROOTFS_DIR/dev || true
+sync

@@ -1,10 +1,9 @@
 export BOARD=rpi4b
 export LB_BOOTSTRAP_INCLUDE="apt-transport-https gnupg"
 export ARCH=arm64
-export CROSS_COMPILE=/usr/local/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+export CROSS_COMPILE=/usr/local/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
 
 rootfs: clean prebuild buildrootfs postbuild mkimage
-basicrootfs: clean prebuild buildbasicrootfs postbuild mkbasicimage
 
 clean:
 	sudo lb clean --purge
@@ -34,23 +33,15 @@ prebuild:
 	--debootstrap-options "--variant=minbase --include=apt-transport-https,gnupg" \
 	--distribution bookworm \
 	--gzip-options '-9 --rsyncable' \
-	--iso-publisher 'Linaro; http://www.linaro.org/; linaro-dev@lists.linaro.org' \
-	--iso-volume 'Linaro Bookworm $(date +%Y%m%d-%H:%M)' \
 	--linux-flavours none \
 	--linux-packages none \
 	--mode debian \
 	--security true \
-	--system normal \
-	--updates true
+	--system normal
 
 buildrootfs:
 	\cp -rf $(PWD)/../customization/* config/
 	cp linaro.list.chroot config/package-lists/linaro.list.chroot
-	sudo lb build
-
-buildbasicrootfs:
-	\cp -rf $(PWD)/../customization/* config/
-	cp linaro.list.chroot.basic config/package-lists/linaro.list.chroot
 	sudo lb build
 
 postbuild:
@@ -58,6 +49,3 @@ postbuild:
 
 mkimage:
 	$(PWD)/../mk-image.sh
-
-mkbasicimage:
-	$(PWD)/../mk-basicimage.sh

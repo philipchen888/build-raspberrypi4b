@@ -1,6 +1,6 @@
 #!/bin/sh
 BOOT=/dev/sda
-dd if=/dev/zero of=${BOOT} bs=1M count=0 seek=8192
+dd if=/dev/zero of=${BOOT} bs=1M count=0 seek=7168
 parted -s ${BOOT} mklabel gpt
 parted -s ${BOOT} unit s mkpart boot 32768 1081343
 parted -s ${BOOT} set 1 boot on
@@ -14,5 +14,5 @@ ${ROOT_UUID}
 w
 y
 EOF
-dd if=../uboot/out/boot.img of=${BOOT} bs=4096 seek=4096 conv=notrunc,fsync
-dd if=../rootfs-ubuntu-jammy/linaro-rootfs.img of=${BOOT} bs=4096 seek=135168 conv=notrunc,fsync
+dd if=../uboot/out/bootusb.img of=${BOOT} bs=4096 seek=4096 conv=notrunc,fsync
+dd if=../rootfs-bullseye/linaro-rootfs.img of=${BOOT} bs=4096 seek=135168 conv=notrunc,fsync

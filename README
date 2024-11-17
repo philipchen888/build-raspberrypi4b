@@ -2,8 +2,16 @@ This is to build sdcard image for Raspberrypi4b:
 
 Parts needed:
 1. Raspberry pi 4B.
-2. Sandisk 64GB SATA SSD with USB cable. ( I tried M.2 NVMe SSD with USB but failed. The M.2 NVMe SSD interfere with wifi and keyboard / mouse. Also M.2 NVMe SSD become slow when running OS using USB interface. We should use PCIE insterface for M.2 NVMe SSD running OS)
-3. Host PC with ubuntu 22.
+2. Sandisk 64GB SATA SSD with USB cable.
+3. Sandisk 64GB micro sdcard.
+4. Host PC with ubuntu 22 and 24.
+
+Note: If keyboard/mouse USB dongle interfere with USB SATA SSD, put keyboard/mouse USB dongle in USB3 socket with USB extension cord.
+
+Note: Compile debian and ubuntu-jammy using host PC with ubuntu 22 (amd64 jammy).
+      Compile ubuntu-noble and ubuntu-oracular using host PC with ubuntu 24 (amd64 noble).
+      Compile ubuntu-noble and ubuntu-oracular using lb version 3.0~a57-1.
+      Compile debian and ubuntu-jammy using lb version 20230502.
 
 Steps to build raspberrypi4b sdcard image:
 
@@ -16,7 +24,17 @@ Steps to build raspberrypi4b sdcard image:
    sudo tar xvf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz  -C /usr/local/
    wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf.tar.xz
    sudo tar xvf gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf.tar.xz -C /usr/local/
+   wget https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+   sudo tar -xJf arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz -C /usr/local/
+
    sudo apt-get install debootstrap debhelper kpartx gdisk devscripts dh-systemd isolinux po4a
+
+   For ubuntu-noble and ubuntu-oracular
+   wget http://security.ubuntu.com/ubuntu/pool/main/l/live-build/live-build_3.0~a57-1ubuntu41.22.04.1_all.deb
+   sudo dpkg -i live-build_3.0~a57-1ubuntu41.22.04.1_all.deb
+   lb --version ( 3.0~a57-1 /usr/bin/lb )
+
+   For debian and ubuntu-jammy:
    wget https://launchpad.net/debian/+archive/primary/+sourcefiles/live-build/1:20230502/live-build_20230502.tar.xz
    tar xvf live-build_20230502.tar.xz
    cd live-build
@@ -61,96 +79,58 @@ Steps to build raspberrypi4b sdcard image:
 
    The result is in ./u-boot/u-boot.bin
 
-   make boot          ( The result is in ./out/boot.img )
+   make boot          ( The result is in ./out/boot.img  bootusb.img)
 
-6. cd ~/build-raspberrypi4b/rootfs-buster  ( Compile debian buster rootfs )
+6. cd ~/build-raspberrypi4b/rootfs-bullseye  ( Compile debian bullseye rootfs )
    make rootfs        ( has desktop )
    The result is in ./linaro-rootfs.img
-
-   make basicrootfs   ( no desktop )
-   The result is in ./linaro-basicrootfs.img
    make clean
 
-7. cd ~/build-raspberrypi4b/rootfs-bullseye  ( Compile debian bullseye rootfs )
+7. cd ~/build-raspberrypi4b/rootfs-bookworm  ( Compile debian bookworm rootfs )
    make rootfs        ( has desktop )
    The result is in ./linaro-rootfs.img
-
-   make basicrootfs   ( no desktop )
-   The result is in ./linaro-basicrootfs.img
    make clean
 
-8. cd ~/build-raspberrypi4b/rootfs-bookworm  ( Compile debian bookworm rootfs )
-   make rootfs        ( has desktop )
-   The result is in ./linaro-rootfs.img
-
-   make basicrootfs   ( no desktop )
-   The result is in ./linaro-basicrootfs.img
-   make clean
-
-9. cd ~/build-raspberrypi4b/rootfs-ubuntu-focal  ( Compile debian ubuntu-focal rootfs )
+8. cd ~/build-raspberrypi4b/rootfs-ubuntu-jammy  ( Compile debian ubuntu-jammy rootfs )
    make rootfs
    The result is in ./linaro-rootfs.img
    make clean
 
-10. cd ~/build-raspberrypi4b/rootfs-ubuntu-jammy  ( Compile debian ubuntu-jammy rootfs )
-    make rootfs
-    The result is in ./linaro-rootfs.img
-    make clean
+9. cd ~/build-raspberrypi4b/bullseye-gnome  ( Build debian bullseye gnome-desktop image )
+   Plugin sdcard/USB2-SATA-SSD to PC.
+   sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
+   Eject sdcard/USB2-SATA-SSD from PC.
 
-11. cd ~/build-raspberrypi4b/buster-lxde  ( Build debian buster lxde-desktop image )
-    Note: Buster uses kernel rpi-5.4.y which doesn't support uboot.
-    ./mksdcardimg.sh
-    The result is in sdcard.img
+10. cd ~/build-raspberrypi4b/bookworm-gnome  ( Build debian bookworm gnome-desktop image )
+    Plugin sdcard/USB2-SATA-SSD to PC.
+    sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
+    Eject sdcard/USB2-SATA-SSD from PC.
 
-12. cd ~/build-raspberrypi4b/buster-xfce-kde-gnome ( Build buster xfce-kde-gnome desktop image )
-    Note: Buster uses kernel rpi-5.4.y which doesn't support uboot.
-    ./mksdcardimg.sh
-    The result is in sdcard.img
+11. cd ~/build-raspberrypi4b/ubuntu-jammy  ( Build ubuntu-jammy image )
+    Plugin sdcard/USB2-SATA-SSD to PC.
+    sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
+    Eject sdcard/USB2-SATA-SSD from PC.
 
-13. cd ~/build-raspberrypi4b/bullseye-lxde  ( Build debian bullseye lxde-desktop image )
-    ./mksdcardimg.sh
-    The result is in sdcard.img
+12. cd ~/build-raspberrypi4b/yocto  ( Build yocto image )
 
-14. cd ~/build-raspberrypi4b/bullseye-xfce-kde-gnome ( Build bullseye xfce-kde-gnome desktop image )
-    ./mksdcardimg.sh
-    The result is in sdcard.img
+13. cd ~/build-raspberrypi4b/yocto-lxde  ( Build yocto lxde-desktop image )
 
-15. cd ~/build-raspberrypi4b/bookworm-lxde  ( Build debian bookworm lxde-desktop image )
-    ./mksdcardimg.sh
-    The result is in sdcard.img
+14. cd ~/build-raspberrypi4b/yocto-xfce  ( Build yocto xfce-desktop image )
 
-16. cd ~/build-raspberrypi4b/bookworm-xfce-kde-gnome ( Build bookworm xfce-kde-gnome desktop image )
-    ./mksdcardimg.sh
-    The result is in sdcard.img
+15. cd ~/build-raspberrypi4b/buildroot   ( Build buildroot image )
 
-17. cd ~/build-raspberrypi4b/ubuntu-focal  ( Build ubuntu-focal image )
-    ./mksdcardimg.sh
-    The result is in sdcard.img
+16. cd ~/build-raspberrypi4b/android     ( Build android image )
 
-18. cd ~/build-raspberrypi4b/ubuntu-jammy  ( Build ubuntu-jammy image )
-    ./mksdcardimg.sh
-    The result is in sdcard.img
+17. cd ~/build-raspberrypi4b/bullseye-gpio  ( gpio test in bullseye-lxde )
 
-19. cd ~/build-raspberrypi4b/yocto  ( Build yocto image )
+18. cd ~/build-raspberrypi4b/bullseye-pn532nfc  ( pn532nfc test in bullseye-lxde )
 
-20. cd ~/build-raspberrypi4b/yocto-lxde  ( Build yocto lxde-desktop image )
+19. cd ~/build-raspberrypi4b/bullseye-flightaware  ( flightaware in bullseye-lxde ) 
 
-21. cd ~/build-raspberrypi4b/yocto-xfce  ( Build yocto xfce-desktop image )
+20. cd ~/build-raspberrypi4b/baremetal-gpio  ( gpio test in baremetal )
 
-22. cd ~/build-raspberrypi4b/buildroot   ( Build buildroot image )
+21. cd ~/build-raspberrypi4b/bookworm-uefi   ( Build bookworm-uefi image )
 
-23. cd ~/build-raspberrypi4b/android     ( Build android image )
+22. cd ~/build-raspberrypi4b/fedora          ( Build fedora image )
 
-24. cd ~/build-raspberrypi4b/bullseye-gpio  ( gpio test in bullseye-lxde )
-
-25. cd ~/build-raspberrypi4b/bullseye-pn532nfc  ( pn532nfc test in bullseye-lxde )
-
-26. cd ~/build-raspberrypi4b/bullseye-flightaware  ( flightaware in bullseye-lxde ) 
-
-27. cd ~/build-raspberrypi4b/baremetal-gpio  ( gpio test in baremetal )
-
-28. cd ~/build-raspberrypi4b/bookworm-uefi   ( Build bookworm-uefi image )
-
-29. cd ~/build-raspberrypi4b/fedora          ( Build fedora image )
-
-30. cd ~/build-raspberrypi4b/ubuntu-uefi     ( Build ubuntu-uefi image )
+23. cd ~/build-raspberrypi4b/ubuntu-uefi     ( Build ubuntu-uefi image )
