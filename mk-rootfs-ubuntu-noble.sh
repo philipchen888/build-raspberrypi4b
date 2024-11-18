@@ -41,6 +41,9 @@ sudo cp -rf ../linux/linux/tmp/lib/modules $TARGET_ROOTFS_DIR/lib
 sudo mkdir -p $TARGET_ROOTFS_DIR/packages
 sudo cp -rf ../packages/$ARCH/* $TARGET_ROOTFS_DIR/packages
 
+# overlay folder
+sudo cp -rf ../overlay/* $TARGET_ROOTFS_DIR/
+
 echo -e "\033[36m Change root.....................\033[0m"
 if [ "$ARCH" == "armhf" ]; then
 	sudo cp /usr/bin/qemu-arm-static $TARGET_ROOTFS_DIR/usr/bin/
@@ -77,6 +80,8 @@ touch "/var/lib/oem-config/run"
 # Enable wayland session
 sed -i 's/#WaylandEnable=false/WaylandEnable=true/g' /etc/gdm3/custom.conf
 
+systemctl enable rc-local
+systemctl enable resize-helper
 chsh -s /bin/bash linaro
 
 #---------------Clean--------------

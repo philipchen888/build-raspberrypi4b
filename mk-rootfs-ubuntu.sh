@@ -41,6 +41,9 @@ sudo cp -rf ../linux/linux/tmp/lib/modules $TARGET_ROOTFS_DIR/lib
 sudo mkdir -p $TARGET_ROOTFS_DIR/packages
 sudo cp -rf ../packages/$ARCH/* $TARGET_ROOTFS_DIR/packages
 
+# overlay folder
+sudo cp -rf ../overlay/* $TARGET_ROOTFS_DIR/
+
 echo -e "\033[36m Change root.....................\033[0m"
 if [ "$ARCH" == "armhf" ]; then
 	sudo cp /usr/bin/qemu-arm-static $TARGET_ROOTFS_DIR/usr/bin/
@@ -67,6 +70,9 @@ chmod +x /etc/rc.local
 dpkg -i /packages/rpiwifi/firmware-brcm80211_20210315-3_all.deb
 cp /packages/rpiwifi/brcmfmac43455-sdio.txt /lib/firmware/brcm/
 apt-get install -f -y
+
+systemctl enable rc-local
+systemctl enable resize-helper
 
 #---------------Clean--------------
 rm -rf /var/lib/apt/lists/*

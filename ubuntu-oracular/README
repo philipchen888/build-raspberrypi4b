@@ -30,10 +30,6 @@ HandleHibernateKey=ignore
 HandleLidSwitch=ignore
 )
 sync
-df .
-lsblk
-sudo resize2fs /dev/mmcblk0p2  ( sda2 )
-df .
 sudo shutdown -h now
 Power off, power on
 glxinfo | grep OpenGL
