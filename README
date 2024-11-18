@@ -91,46 +91,66 @@ Steps to build raspberrypi4b sdcard image:
    The result is in ./linaro-rootfs.img
    make clean
 
-8. cd ~/build-raspberrypi4b/rootfs-ubuntu-jammy  ( Compile debian ubuntu-jammy rootfs )
+8. cd ~/build-raspberrypi4b/rootfs-ubuntu-jammy  ( Compile ubuntu-jammy rootfs )
    make rootfs
    The result is in ./linaro-rootfs.img
    make clean
 
-9. cd ~/build-raspberrypi4b/bullseye-gnome  ( Build debian bullseye gnome-desktop image )
-   Plugin sdcard/USB2-SATA-SSD to PC.
-   sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
-   Eject sdcard/USB2-SATA-SSD from PC.
+9. cd ~/build-raspberrypi4b/rootfs-ubuntu-noble  ( Compile ubuntu-noble rootfs )
+   make rootfs
+   The result is in ./linaro-rootfs.img
+   make clean
 
-10. cd ~/build-raspberrypi4b/bookworm-gnome  ( Build debian bookworm gnome-desktop image )
+10. cd ~/build-raspberrypi4b/rootfs-ubuntu-oracular  ( Compile ubuntu-oracular rootfs )
+    make rootfs
+    The result is in ./linaro-rootfs.img
+    make clean
+
+11. cd ~/build-raspberrypi4b/bullseye-gnome  ( Build debian bullseye gnome-desktop image )
     Plugin sdcard/USB2-SATA-SSD to PC.
     sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
     Eject sdcard/USB2-SATA-SSD from PC.
 
-11. cd ~/build-raspberrypi4b/ubuntu-jammy  ( Build ubuntu-jammy image )
+12. cd ~/build-raspberrypi4b/bookworm-gnome  ( Build debian bookworm gnome-desktop image )
     Plugin sdcard/USB2-SATA-SSD to PC.
     sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
     Eject sdcard/USB2-SATA-SSD from PC.
 
-12. cd ~/build-raspberrypi4b/yocto  ( Build yocto image )
+13. cd ~/build-raspberrypi4b/ubuntu-jammy  ( Build ubuntu-jammy image )
+    Plugin sdcard/USB2-SATA-SSD to PC.
+    sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
+    Eject sdcard/USB2-SATA-SSD from PC.
 
-13. cd ~/build-raspberrypi4b/yocto-lxde  ( Build yocto lxde-desktop image )
+14. cd ~/build-raspberrypi4b/ubuntu-noble  ( Build ubuntu-noble image )
+    Plugin sdcard/USB2-SATA-SSD to PC.
+    sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
+    Eject sdcard/USB2-SATA-SSD from PC.
 
-14. cd ~/build-raspberrypi4b/yocto-xfce  ( Build yocto xfce-desktop image )
+15. cd ~/build-raspberrypi4b/ubuntu-oracular  ( Build ubuntu-oracular image )
+    Plugin sdcard/USB2-SATA-SSD to PC.
+    sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
+    Eject sdcard/USB2-SATA-SSD from PC.
 
-15. cd ~/build-raspberrypi4b/buildroot   ( Build buildroot image )
+16. cd ~/build-raspberrypi4b/yocto  ( Build yocto image )
 
-16. cd ~/build-raspberrypi4b/android     ( Build android image )
+17. cd ~/build-raspberrypi4b/yocto-lxde  ( Build yocto lxde-desktop image )
 
-17. cd ~/build-raspberrypi4b/bullseye-gpio  ( gpio test in bullseye-lxde )
+18. cd ~/build-raspberrypi4b/yocto-xfce  ( Build yocto xfce-desktop image )
 
-18. cd ~/build-raspberrypi4b/bullseye-pn532nfc  ( pn532nfc test in bullseye-lxde )
+19. cd ~/build-raspberrypi4b/buildroot   ( Build buildroot image )
 
-19. cd ~/build-raspberrypi4b/bullseye-flightaware  ( flightaware in bullseye-lxde ) 
+20. cd ~/build-raspberrypi4b/android     ( Build android image )
 
-20. cd ~/build-raspberrypi4b/baremetal-gpio  ( gpio test in baremetal )
+21. cd ~/build-raspberrypi4b/bullseye-gpio  ( gpio test in bullseye-lxde )
 
-21. cd ~/build-raspberrypi4b/bookworm-uefi   ( Build bookworm-uefi image )
+22. cd ~/build-raspberrypi4b/bullseye-pn532nfc  ( pn532nfc test in bullseye-lxde )
 
-22. cd ~/build-raspberrypi4b/fedora          ( Build fedora image )
+23. cd ~/build-raspberrypi4b/bullseye-flightaware  ( flightaware in bullseye-lxde ) 
 
-23. cd ~/build-raspberrypi4b/ubuntu-uefi     ( Build ubuntu-uefi image )
+24. cd ~/build-raspberrypi4b/baremetal-gpio  ( gpio test in baremetal )
+
+25. cd ~/build-raspberrypi4b/bookworm-uefi   ( Build bookworm-uefi image )
+
+26. cd ~/build-raspberrypi4b/fedora          ( Build fedora image )
+
+27. cd ~/build-raspberrypi4b/ubuntu-uefi     ( Build ubuntu-uefi image )

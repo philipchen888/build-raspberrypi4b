@@ -19,7 +19,7 @@ if [ ! $VERSION ]; then
 	VERSION="release"
 fi
 
-if [ ! -e live-image-$ARCH.tar.tar.gz ]; then
+if [ ! -e binary-tar.tar.gz ]; then
 	echo "\033[36m Run sudo lb build first \033[0m"
 fi
 
@@ -33,7 +33,7 @@ finish() {
 trap finish ERR
 
 echo -e "\033[36m Extract image \033[0m"
-sudo tar -xpf live-image-$ARCH.tar.tar.gz
+sudo tar -xpf binary-tar.tar.gz
 
 sudo cp -rf ../linux/linux/tmp/lib/modules $TARGET_ROOTFS_DIR/lib
 
@@ -67,6 +67,15 @@ chmod +x /etc/rc.local
 dpkg -i /packages/rpiwifi/firmware-brcm80211_20210315-3_all.deb
 cp /packages/rpiwifi/brcmfmac43455-sdio.txt /lib/firmware/brcm/
 apt-get install -f -y
+
+# Create the linaro user account
+/usr/sbin/useradd -d /home/linaro -G adm,sudo,video -m -N -u 29999 linaro
+echo -e "linaro:linaro" | chpasswd
+echo -e "linaro-alip" | tee /etc/hostname
+touch "/var/lib/oem-config/run"
+
+# Enable wayland session
+sed -i 's/#WaylandEnable=false/WaylandEnable=true/g' /etc/gdm3/custom.conf
 
 chsh -s /bin/bash linaro
 

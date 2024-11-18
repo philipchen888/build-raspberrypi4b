@@ -1,0 +1,67 @@
+Build ubuntu-oracular sdcard for raspberrypi4b:
+
+Input files: ../uboot/out/boot.img  bootusb.img
+             ../rootfs-ubuntu-oracular/linaro-rootfs.img
+
+Plugin sdcard/USB2-SATA-SSD to PC.
+sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
+Eject sdcard/USB2-SATA-SSD from PC.
+
+Plugin sdcard/USB2-SATA-SSD to rpi4b.
+
+Login:
+Username: linaro
+Password: linaro
+Setup wifi. Disable power saving and screen saver.
+uname -a
+lsb_release -a
+sudo ifconfig
+sudo dpkg-reconfigure tzdata
+sudo dpkg-reconfigure locales
+date
+sudo apt update
+sudo apt upgrade
+sudo apt dist-upgrade
+sudo vi /etc/systemd/logind.conf ( change to follows:
+HandlePowerKey=ignore
+HandleRebootKey=ignore
+HandleSuspendKey=ignore
+HandleHibernateKey=ignore
+HandleLidSwitch=ignore
+)
+sync
+df .
+lsblk
+sudo resize2fs /dev/mmcblk0p2  ( sda2 )
+df .
+sudo shutdown -h now
+Power off, power on
+glxinfo | grep OpenGL
+date
+Check display mode: ( wayland or x11 )
+echo $XDG_SESSION_TYPE
+Check audio driver: ( pulseaudio or pipewire )
+pactl info
+
+sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc
+
+speedtest-cli --secure
+
+glmark2-es2-wayland
+
+aplay -l
+pavucontrol  ( select card 0 as default )
+
+firefox -> youtube.com -> search YmDNhi07_Ho
+
+git clone https://github.com/yt-dlp/yt-dlp.git
+cd yt-dlp
+make
+cd ../
+~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4
+mpv swan.mp4
+
+sudo rfkill list
+hciconfig hci0
+hcitool dev
+hciconfig -a

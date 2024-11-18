@@ -54,7 +54,8 @@ sudo mount -o bind /dev/pts $TARGET_ROOTFS_DIR/dev/pts
 
 cat << EOF | sudo chroot $TARGET_ROOTFS_DIR
 
-ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
+rm -rf /etc/resolv.conf
+echo -e "nameserver 8.8.8.8\nnameserver 8.8.4.4" > /etc/resolv.conf
 resolvconf -u
 apt-get update
 apt-get upgrade -y
