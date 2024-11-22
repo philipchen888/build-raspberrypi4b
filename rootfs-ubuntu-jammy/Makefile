@@ -7,11 +7,11 @@ rootfs: clean prebuild buildrootfs postbuild mkimage
 
 clean:
 	sudo lb clean --purge
-	\rm -rf config .build rootfs
+	sudo \rm -rf config .build rootfs local
 
 cleanall:
 	sudo lb clean --purge
-	\rm -rf config .build rootfs
+	\rm -rf config .build rootfs local
 	\rm -rf linaro-rootfs.img
 
 prebuild:

@@ -20,7 +20,7 @@ buildkernel:
 postbuildkernel:
 	cd linux; \
 	\rm -f $(BOOT); \
-	mkfs.vfat -n "boot" -S 512 -C ${BOOT} 65536; \
+	mkfs.vfat -n "boot" -S 512 -C ${BOOT} 512000; \
 	mmd -i ${BOOT} ::/overlays; \
 	mcopy -i ${BOOT} -s ../firmware/fixup4.dat ::; \
 	mcopy -i ${BOOT} -s ../firmware/start4.elf ::; \
