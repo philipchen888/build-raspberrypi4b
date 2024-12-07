@@ -4,7 +4,7 @@ Input files: ../uboot/out/boot.img  bootusb.img
              ../rootfs-bookworm/linaro-rootfs.img
 
 Plugin sdcard/USB2-SATA-SSD to PC.
-sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
+sudo ./mksdcardimg.sh
 Eject sdcard/USB2-SATA-SSD from PC.
 
 Plugin sdcard/USB2-SATA-SSD to rpi4b.
@@ -31,7 +31,7 @@ echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install speedtest-cli python3-pip python3-setuptools chromium chromium-sandbox ffmpeg mpv glmark2-es2-x11 glmark2-es2-wayland pandoc
+sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-x11 glmark2-es2-wayland pandoc firefox-esr
 
 speedtest-cli --secure
 
@@ -41,7 +41,7 @@ glmark2-es2          ( for x11 )
 aplay -l
 pavucontrol  ( select card 0 as default )
 
-Chromium -> youtube.com -> search YmDNhi07_Ho
+firefox -> youtube.com -> search YmDNhi07_Ho
 
 git clone https://github.com/yt-dlp/yt-dlp.git
 cd yt-dlp

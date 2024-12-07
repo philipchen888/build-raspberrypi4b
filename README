@@ -13,6 +13,9 @@ Note: Compile debian and ubuntu-jammy using host PC with ubuntu 22 (amd64 jammy)
       Compile ubuntu-noble and ubuntu-oracular using lb version 3.0~a57-1.
       Compile debian and ubuntu-jammy using lb version 20230502.
 
+Note: Debian uses u-boot with vendor's kernel because mesa 22 is not compatible with mainline kernel. 
+      Ubuntu uses uefi boot with mainline kernel ( mesa >= 23 ).
+
 Steps to build raspberrypi4b sdcard image:
 
 1. git clone https://github.com/philipchen888/build-raspberrypi4b.git
@@ -53,19 +56,18 @@ Steps to build raspberrypi4b sdcard image:
    Plugin sdcard to rpi4b and boot. When monitor display green it's done. Power off rpi4b.
 
 3. cd ~/build-raspberrypi4b/kernel ( Compile vendor's kernel )
-   git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-5.4.y
-   cp bcm2711_defconfig ./linux/arch/arm/configs/
-   cd linux; mkdir tmp; cd tmp; mkdir lib;
-   cd ../../; mkdir out;
+   git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.6.y
+   vi ./linux/arch/arm64/configs/bcm2711_defconfig ( change CONFIG_I2C_CHARDEV=m to CONFIG_I2C_CHARDEV=y )
+   \rm -rf out; mkdir out; 
 
    make kernel
    The result is in ./out/boot.img
 
 4. cd ~/build-raspberrypi4b/linux  ( Compile mainline kernel )
-   git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.6.y
-   vi ./linux/arch/arm/configs/bcm2711_defconfig ( change CONFIG_I2C_CHARDEV=m to CONFIG_I2C_CHARDEV=y )
-   cd linux; mkdir tmp; cd tmp; mkdir lib;
-   cd ../../; mkdir out;
+   wget https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/snapshot/linux-6.8-rc4.tar.gz
+   tar -xzf linux-6.8-rc4.tar.gz
+   mv linux-6.8-rc4 linux
+   \rm -rf out; mkdir out;
 
    make kernel
    The result is in ./out/boot.img
@@ -79,31 +81,31 @@ Steps to build raspberrypi4b sdcard image:
 
    The result is in ./u-boot/u-boot.bin
 
-   make boot          ( The result is in ./out/boot.img  bootusb.img)
+   make boot          ( The results are in ./out/boot.img  bootusb.img)
 
 6. cd ~/build-raspberrypi4b/rootfs-bullseye  ( Compile debian bullseye rootfs )
-   make rootfs        ( has desktop )
+   make rootfs
    The result is in ./linaro-rootfs.img
    make clean
 
 7. cd ~/build-raspberrypi4b/rootfs-bookworm  ( Compile debian bookworm rootfs )
-   make rootfs        ( has desktop )
+   make rootfs
    The result is in ./linaro-rootfs.img
    make clean
 
 8. cd ~/build-raspberrypi4b/rootfs-ubuntu-jammy  ( Compile ubuntu-jammy rootfs )
    make rootfs
-   The result is in ./linaro-rootfs.img
+   The results are in ./linaro-rootfs.img  linaro-esp.img
    make clean
 
 9. cd ~/build-raspberrypi4b/rootfs-ubuntu-noble  ( Compile ubuntu-noble rootfs )
    make rootfs
-   The result is in ./linaro-rootfs.img
+   The results are in ./linaro-rootfs.img  linaro-esp.img
    make clean
 
 10. cd ~/build-raspberrypi4b/rootfs-ubuntu-oracular  ( Compile ubuntu-oracular rootfs )
     make rootfs
-    The result is in ./linaro-rootfs.img
+    The results are in ./linaro-rootfs.img  linaro-esp.img
     make clean
 
 11. cd ~/build-raspberrypi4b/bullseye-gnome  ( Build debian bullseye gnome-desktop image )

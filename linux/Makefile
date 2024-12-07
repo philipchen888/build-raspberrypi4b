@@ -8,14 +8,17 @@ clean:
 	cd linux; \
 	sudo make mrproper
 
-kernel: buildkernel postbuildkernel
+kernel: buildkernel postbuildkernel 
 
 buildkernel:
 	cd linux; \
+	sudo \rm -rf tmp; mkdir tmp; mkdir -p tmp/lib; \
 	sudo make mrproper; \
-	make ARCH=arm64 bcm2711_defconfig; \
-	make ARCH=arm64 all -j4; \
-	sudo make ARCH=arm64 INSTALL_MOD_PATH=./tmp modules_install
+	make ARCH=arm64 defconfig; \
+	make ARCH=arm64 all -j8; \
+	sudo make ARCH=arm64 INSTALL_MOD_PATH=./tmp modules_install; \
+	sudo make ARCH=arm64 INSTALL_DTBS_PATH=./tmp/boot/dtb dtbs_install; \
+	sudo make ARCH=arm64 INSTALL_PATH=./tmp/boot install
 
 postbuildkernel:
 	cd linux; \

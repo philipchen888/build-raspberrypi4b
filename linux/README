@@ -1,9 +1,9 @@
 Compile mainline kernel:
 
-git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.6.y
-vi ./linux/arch/arm/configs/bcm2711_defconfig ( change CONFIG_I2C_CHARDEV=m to CONFIG_I2C_CHARDEV=y )
-cd linux; mkdir tmp; cd tmp; mkdir lib;
-cd ../../; mkdir out;
+wget https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/snapshot/linux-6.8-rc4.tar.gz
+tar -xzf linux-6.8-rc4.tar.gz
+mv linux-6.8-rc4 linux
+\rm -rf out; mkdir out;
 
 make kernel
 The result is in ./out/boot.img

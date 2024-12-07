@@ -23,9 +23,9 @@ boot:
 	mcopy -i ${BOOT} -s ./u-boot/u-boot.bin ::; \
 	mcopy -i ${BOOT} -s ./firmware/boot/fixup4.dat ::; \
 	mcopy -i ${BOOT} -s ./firmware/boot/start4.elf ::; \
-	mcopy -i ${BOOT} -s ../linux/linux/arch/arm64/boot/Image ::; \
-	mcopy -i ${BOOT} -s ../linux/linux/arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dtb ::; \
-	mcopy -i ${BOOT} -s ../linux/linux/arch/arm64/boot/dts/overlays/*.dtb* ::/overlays
+	mcopy -i ${BOOT} -s ../kernel/linux/arch/arm64/boot/Image ::; \
+	mcopy -i ${BOOT} -s ../kernel/linux/arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dtb ::; \
+	mcopy -i ${BOOT} -s ../kernel/linux/arch/arm64/boot/dts/overlays/*.dtb* ::/overlays
 	mkimage -A arm64 -O linux -T script -C none -d boot_usbcmd.txt $(OUT)/bootusb.scr.uimg; \
 	\rm -f $(BOOTUSB); \
 	mkfs.vfat -n "boot" -S 512 -C ${BOOTUSB} 512000; \
@@ -36,6 +36,6 @@ boot:
 	mcopy -i ${BOOTUSB} -s ./u-boot/u-boot.bin ::; \
 	mcopy -i ${BOOTUSB} -s ./firmware/boot/fixup4.dat ::; \
 	mcopy -i ${BOOTUSB} -s ./firmware/boot/start4.elf ::; \
-	mcopy -i ${BOOTUSB} -s ../linux/linux/arch/arm64/boot/Image ::; \
-	mcopy -i ${BOOTUSB} -s ../linux/linux/arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dtb ::; \
-	mcopy -i ${BOOTUSB} -s ../linux/linux/arch/arm64/boot/dts/overlays/*.dtb* ::/overlays
+	mcopy -i ${BOOTUSB} -s ../kernel/linux/arch/arm64/boot/Image ::; \
+	mcopy -i ${BOOTUSB} -s ../kernel/linux/arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dtb ::; \
+	mcopy -i ${BOOTUSB} -s ../kernel/linux/arch/arm64/boot/dts/overlays/*.dtb* ::/overlays

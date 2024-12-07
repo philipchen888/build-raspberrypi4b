@@ -1,14 +1,14 @@
 Build ubuntu-noble sdcard for raspberrypi4b:
 
-Input files: ../uboot/out/boot.img  bootusb.img
+Input files: ../rootfs-ubuntu-noble/linaro-esp.img
              ../rootfs-ubuntu-noble/linaro-rootfs.img
 
 Plugin sdcard/USB2-SATA-SSD to PC.
-sudo ./mksdcardimg.sh   ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
+sudo ./mksdcardimg.sh
 Eject sdcard/USB2-SATA-SSD from PC.
 
 Plugin sdcard/USB2-SATA-SSD to rpi4b.
-
+Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> sdcard or first UEFI.
 Login:
 Username: linaro
 Password: linaro
@@ -34,17 +34,18 @@ sudo shutdown -h now
 Power off, power on
 glxinfo | grep OpenGL
 date
+Check if Ubuntu is running UEFI mode:
+ls /sys/firmware/efi
 Check display mode: ( wayland or x11 )
 echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2 glmark2-es2-wayland pandoc
+sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc
 
 speedtest-cli --secure
 
-glmark2-es2-wayland  ( for wayland )
-glmark2-es2          ( for x11 )
+glmark2-es2-wayland
 
 aplay -l
 pavucontrol  ( select card 0 as default )

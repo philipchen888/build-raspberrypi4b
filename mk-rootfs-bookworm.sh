@@ -35,11 +35,14 @@ trap finish ERR
 echo -e "\033[36m Extract image \033[0m"
 sudo tar -xpf live-image-$ARCH.tar.tar.gz
 
-sudo cp -rf ../linux/linux/tmp/lib/modules $TARGET_ROOTFS_DIR/lib
+sudo cp -rf ../kernel/linux/tmp/lib/modules $TARGET_ROOTFS_DIR/lib
 
 # packages folder
 sudo mkdir -p $TARGET_ROOTFS_DIR/packages
 sudo cp -rf ../packages/$ARCH/* $TARGET_ROOTFS_DIR/packages
+sudo cp -rf ../linux/linux/tmp/boot/* $TARGET_ROOTFS_DIR/boot
+sudo cp ../linux/patches/40_custom_uuid $TARGET_ROOTFS_DIR/boot
+sudo cp ../linux/patches/debian/fstab $TARGET_ROOTFS_DIR/boot
 
 # overlay folder
 sudo cp -rf ../overlay/* $TARGET_ROOTFS_DIR/
@@ -67,7 +70,7 @@ apt-get install -y build-essential git wget
 chmod o+x /usr/lib/dbus-1.0/dbus-daemon-launch-helper
 chmod +x /etc/rc.local
 
-dpkg -i /packages/rpiwifi/firmware-brcm80211_20210315-3_all.deb
+dpkg -i /packages/rpiwifi/firmware-brcm80211_20240909-2_all.deb
 cp /packages/rpiwifi/brcmfmac43455-sdio.txt /lib/firmware/brcm/
 apt-get install -f -y
 
