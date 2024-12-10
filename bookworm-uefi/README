@@ -1,28 +1,25 @@
 Build bookworm-uefi sdcard image for raspberrypi4b:
 
-see https://forums.raspberrypi.com/viewtopic.php?t=282839
-Overview the whole process:
-Create a GPT ESP (EFI System Partition) onto an USB2 sata ssd, extract the netinst.iso content there, add the latest Raspberry PI UEFI firmware and proceed to a standard Debian networked installation. That's it!
-
 cd ~/Downloads
-wget https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/debian-12.5.0-arm64-netinst.iso
-wget https://github.com/pftf/RPi4/releases/download/v1.37/RPi4_UEFI_Firmware_v1.37.zip 
+wget https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/debian-12.8.0-arm64-netinst.iso
+wget https://github.com/pftf/RPi4/releases/download/v1.38/RPi4_UEFI_Firmware_v1.38.zip 
 
-Plugin USB2 sata ssd to PC.
 cd ~/build-raspberrypi4b/bookworm-uefi
+
+Plugin USB2 SATA ssd to PC.
 sudo ./mksdcardimg.sh
 sudo mkfs.vfat /dev/sda1
 sudo fdisk -l /dev/sda
 sudo mount -t vfat /dev/sda1 /mnt
 cd /mnt
-sudo 7z x ~/Downloads/debian-12.5.0-arm64-netinst.iso
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.37.zip
-cd ~/
+sudo 7z x ~/Downloads/debian-12.8.0-arm64-netinst.iso
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.38.zip
+cd ~/build-raspberrypi4b/bookworm-uefi
 sync
 sudo umount /mnt
-Eject USB2 sata ssd from PC.
+Eject USB2 SATA ssd from PC.
 
-Plugin USB2 sata ssd to rpi4b USB2 port. Plugin ethernet cable to rpi4b. Power on rpi4b.
+Plugin USB2 sata ssd to rpi4b. Plugin ethernet cable to rpi4b. Power on rpi4b.
 Select install
 loading missing firmware? No
 Select debian desktop and gnome in addition to ssh and standard system utilities.
@@ -44,80 +41,17 @@ uname -a
 lsb_release -a
 sudo nmcli dev wifi connect "SSID" password "PASSWORD"
 sudo apt update; sudo apt upgrade; sudo apt install net-tools;
+Check if Debian is running UEFI mode:
+ls /sys/firmware/efi
+Check display mode: ( wayland or x11 )
+echo $XDG_SESSION_TYPE
+Check audio driver: ( pulseaudio or pipewire )
+pactl info
 
-sudo vi /etc/default/raspi-firmware-custom ( add
-dtparam=audio=on
-dtparam=i2c_arm=on
-dtparam=spi=on
-dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4
-dtoverlay=uart2
-dtoverlay=vc4-fkms-v3d
-max_framebuffers=2
-enable_uart=1
-)
-sudo vi /etc/default/raspi-extra-cmdline ( add
-init=/sbin/init
-)
-
-Install raspi-firmware:
-sudo mkdir /boot/firmware
-sudo vi /etc/fstab ( replace /boot/efi with /boot/firmware )
-sudo systemctl daemon-reload
-sudo mount -a
-lsblk
-sudo apt install raspi-firmware
-sync
-sudo ls -la /boot/firmware/
-
-Install /lib/firmware/rtl_nic:
-cd ~/Downloads
-wget https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/rtl_nic/rtl8156b-2.fw rtl8156a-2.fw rtl8153c-1.fw rtl8153b-2.fw rtl8153a-4.fw rtl8153a-3.fw rtl8153a-2.fw
-sudo mkdir /lib/firmware/rtl_nic
-sudo cp ~/Downloads/*.fw /lib/firmware/rtl_nic/
-sync
-sudo shutdown -h now
-
-Power on rpi4b.
-
-sudo apt install build-essential libncurses-dev libelf-dev flex bison libssl-dev speedtest-cli libjpeg-dev libpng-dev libpng16-16 pkg-config libx11-dev python3-pip python3-setuptools chromium chromium-sandbox ffmpeg mpv glmark2-es2 pandoc git zip pavucontrol debhelper rsync vsftpd rfkill lua5.1 bluetooth
-
-sudo vi /etc/vsftpd.conf ( anonymous_enable=NO, local_enable=YES, write_enable=YES )
-sudo systemctl restart vsftpd
+sudo apt install build-essential speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2 pandoc pavucontrol
 
 speedtest-cli --secure
 
 glmark2-es2
 
-Compile custom kernel from source:
-git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.6.y
-vi ./linux/arch/arm/configs/bcm2711_defconfig ( change to CONFIG_CMDLINE="" )
-cd linux;
-KERNEL=kernel8
-sudo make mrproper
-make ARCH=arm64 bcm2711_defconfig
-make ARCH=arm64 deb-pkg LOCALVERSION=-custom -j4   ( It may take 5 hours to finish )
-ls -la ../*.deb
-sudo dpkg -i ../linux-image-6.6.30-v8-custom_6.6.30-gabc50146600e-2_arm64.deb
-sudo cp ./arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dtb /boot/firmware
-sudo cp ./arch/arm64/boot/dts/overlays/*.dtb* /boot/firmware/overlays
-sudo cp ./arch/arm64/boot/dts/overlays/README /boot/firmware/overlays
-sync
-sudo shutdown -h now
-Power on rpi4b.
-
-uname -a
-lsb_release -a
-
-glmark2-es2
-
-aplay -l
-pavucontrol  ( select hdmi as default )
-
-Chromium -> youtube.com -> search YmDNhi07_Ho
-
-git clone https://github.com/yt-dlp/yt-dlp.git
-cd yt-dlp
-make
-cd ../
-~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4
-mpv swan.mp4
+mainline kernel 6.1.0-28-arm64 doesn't support rpi4b sound, bluetooth.

@@ -55,4 +55,4 @@ mkimage:
 	$(PWD)/../mk-image.sh
 
 mkespimage:
-	$(PWD)/../mk-espimage.sh
+	$(PWD)/../mk-ubuntuespimage.sh

@@ -1,77 +1,89 @@
 Build ubuntu-uefi sdcard image for raspberrypi4b:
 
-Plugin USB2 SATA SSD to PC.
-sudo snap install rpi-imager
-rpi-imager
-choose os
-Other general-purpose OS
-Ubuntu -> Ubuntu Desktop 22.04.4 LTS ( 64-BIT )
-choose storage
-write
-Eject USB2 SATA SSD from PC.
+cd ~/Downloads
+wget https://cdimage.ubuntu.com/noble/daily-live/current/noble-desktop-arm64.iso
+wget https://github.com/pftf/RPi4/releases/download/v1.38/RPi4_UEFI_Firmware_v1.38.zip
 
-Plugin USB2 SATA SSD to rpi4b USB2 port. Plugin ethernet cable to rpi4b. Power on rpi4b.
+cd ~/build-raspberrypi4b/ubuntu-uefi
 
+Plugin sdcard to PC.
+sudo ./mkuefiboot.sh
+sudo mkfs.vfat /dev/sda1
+sudo fdisk -l /dev/sda
+sudo mount -t vfat /dev/sda1 /mnt
+cd /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.38.zip
+cd ~/build-raspberrypi4b/ubuntu-uefi
+sync
+sudo umount /mnt
+Eject sdcard from PC.
+
+Plugin USB2 flash drive to PC.
+sudo ./mksdcardimg.sh
+sudo mkfs.vfat /dev/sda1
+sudo fdisk -l /dev/sda
+sudo mount -t vfat /dev/sda1 /mnt
+cd /mnt
+sudo 7z x ~/Downloads/noble-desktop-arm64.iso
+cd ~/build-raspberrypi4b/ubuntu-uefi
+sync
+sudo umount /mnt
+Eject USB2 flash drive from PC.
+
+Plugin USB2 SATA ssd to PC.
+sudo ./mksatassd.sh
+sudo mkfs.ext4 /dev/sda1
+sudo fdisk -l /dev/sda
+Eject USB2 SATA ssd from PC.
+
+------------------------------------------------------------------------
+Install ubuntu from USB2 flash drive ubuntu iso to empty USB2 SATA ssd.
+------------------------------------------------------------------------
+
+Plugin sdcard, USB2 flash drive and USB2 SATA ssd to rpi4b. Plugin ethernet cable to rpi4b. Power on rpi4b.
+Select install
+Double click Install Ubuntu LTS icon.
+Erase disk and install Ubuntu.
+Click Install now.
+Contine till finished. Restart.
+
+Remove USB2 flash drive from rpi4b.
+Login:
+Username: linaro
+Password: linaro
 Disable power saving and screen saver.
-
-df .
 uname -a
 lsb_release -a
+sudo ifconfig
+sudo dpkg-reconfigure tzdata
+sudo dpkg-reconfigure locales
 date
 sudo apt update
 sudo apt upgrade
+sudo apt dist-upgrade
+sudo vi /etc/systemd/logind.conf ( change to follows:
+HandlePowerKey=ignore
+HandleRebootKey=ignore
+HandleSuspendKey=ignore
+HandleHibernateKey=ignore
+HandleLidSwitch=ignore
+)
 sync
-sudo apt install net-tools openssh-server
-sudo ifconfig
+sudo shutdown -h now
+Power off, power on
+glxinfo | grep OpenGL
+date
+Check if Ubuntu is running UEFI mode:
+ls /sys/firmware/efi
+Check display mode: ( wayland or x11 )
+echo $XDG_SESSION_TYPE
+Check audio driver: ( pulseaudio or pipewire )
+pactl info
 
----------------------------------------------------------------------
-Compile and install custom kernel.
----------------------------------------------------------------------
+sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc
 
-sudo apt install flex bison libelf-dev libssl-dev build-essential libncurses-dev git speedtest-cli glmark2-es2 mpv ffmpeg python3-pip python3-setuptools pandoc pavucontrol zip rfkill vsftpd
+speedtest-cli --secure
 
-speedtest-cli
+glmark2-es2-wayland
 
-nproc --all
-git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.6.y
-cd linux
-sudo make mrproper
-make ARCH=arm64 bcm2711_defconfig
-make ARCH=arm64 all -j4               ( it may take 4 hours to compile kernel )
-sudo make ARCH=arm64 modules_install
-sudo make ARCH=arm64 dtbs_install
-cd /boot
-sudo cp ./dtbs/6.6.32-v8+/broadcom/bcm2711-rpi-4-b.dtb /etc/flash-kernel/dtbs
-cd ~/linux
-sudo make ARCH=arm64 install
-cd /boot/firmware
-sudo cp ../dtbs/6.6.32-v8+/broadcom/bcm2711-rpi-4-b.dtb bcm2711-rpi-4-b.dtb
-sudo cp ../vmlinuz .
-sudo cp ../initrd.img .
-sudo cp -r ../dtbs/6.6.32-v8+/overlays/* ./overlays
-cd
-sync
-sudo reboot
-
-sudo nmcli dev wifi connect "SSID" password "PASSWORD"
-Disconnect ethernet cable from rockpi4b.
-uname -a
-
-glmark2-es2
-speedtest-cli
-
-aplay -l
-pavucontrol  ( select hdmi as default )
-
-git clone https://github.com/yt-dlp/yt-dlp.git
-cd yt-dlp
-make
-cd
-~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' hyUhEjtlDLA -o avemaria.mp4
-mpv avemaria.mp4
-
-sudo rfkill list
-hciconfig hci0
-hcitool dev
-hciconfig -a
-
+rpi4b sound, wifi and bluetooth are not supported in mainline kernel 6.8.0-49-generic.

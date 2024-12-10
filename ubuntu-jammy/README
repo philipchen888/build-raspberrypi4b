@@ -1,13 +1,30 @@
 Build ubuntu-jammy sdcard for raspberrypi4b:
 
-Input files: ../rootfs-ubuntu-jammy/linaro-esp.img
+Input files: ../rootfs-ubuntu-jammy/linaro-jammyesp.img
              ../rootfs-ubuntu-jammy/linaro-rootfs.img
 
-Plugin sdcard/USB2-SATA-SSD to PC.
-sudo ./mksdcardimg.sh
-Eject sdcard/USB2-SATA-SSD from PC.
+cd ~/Downloads
+wget https://github.com/pftf/RPi4/releases/download/v1.38/RPi4_UEFI_Firmware_v1.38.zip
 
-Plugin sdcard/USB2-SATA-SSD to rpi4b.
+cd ~/build-raspberrypi4b/ubuntu-jammy
+
+Plugin sdcard to PC.
+sudo ./mkuefiboot.sh
+sudo mkfs.vfat /dev/sda1
+sudo fdisk -l /dev/sda
+sudo mount -t vfat /dev/sda1 /mnt
+cd /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.38.zip
+cd ~/build-raspberrypi4b/ubuntu-jammy
+sync
+sudo umount /mnt
+Eject sdcard from PC.
+
+Plugin USB2-SATA-SSD to PC.
+sudo ./mkusbssd.sh
+Eject USB2-SATA-SSD from PC.
+
+Plugin sdcard and USB2-SATA-SSD to rpi4b.
 Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> sdcard or first UEFI.
 Login:
 Username: linaro
