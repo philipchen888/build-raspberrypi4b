@@ -1,14 +1,25 @@
 Build bookworm-gnome sdcard for raspberrypi4b:
 
-Input files: ../uboot/out/boot.img  bootusb.img
+Input files: ../rootfs-bookworm/linaro-esp.img
              ../rootfs-bookworm/linaro-rootfs.img
+
+cd ~/Downloads
+wget https://github.com/pftf/RPi4/releases/download/v1.40/RPi4_UEFI_Firmware_v1.40.zip
+
+cd ~/build-raspberrypi4b/bookworm-gnome
 
 Plugin sdcard/USB2-SATA-SSD to PC.
 sudo ./mksdcardimg.sh
+sudo mount /dev/sda1 /mnt
+cd /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.40.zip
+cd ~/build-raspberrypi4b/bookworm-gnome
+sync
+sudo umount /mnt
 Eject sdcard/USB2-SATA-SSD from PC.
 
 Plugin sdcard/USB2-SATA-SSD to rpi4b.
-
+Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
 Login:
 Username: linaro
 Password: linaro
@@ -26,17 +37,18 @@ sudo shutdown -h now
 Power off, power on
 glxinfo | grep OpenGL
 date
+Check if Debian is running UEFI mode:
+ls /sys/firmware/efi
 Check display mode: ( wayland or x11 )
 echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-x11 glmark2-es2-wayland pandoc firefox-esr
+sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc firefox-esr
 
 speedtest-cli --secure
 
-glmark2-es2-wayland  ( for wayland )
-glmark2-es2          ( for x11 )
+glmark2-es2-wayland
 
 aplay -l
 pavucontrol  ( select card 0 as default )
@@ -54,3 +66,17 @@ sudo rfkill list
 hciconfig hci0
 hcitool dev
 hciconfig -a
+
+-------------------------------------------------------
+
+Change to u-boot and vendor kernel:
+
+cd ~/build-raspberrypi4b/bookworm-gnome
+
+Plugin sdcard/USB2-SATA-SSD to PC.  ( for USB2-SATA-SSD change to uboot/out/bootusb.img )
+sudo dd if=../uboot/out/boot.img of=/dev/sda bs=4096 seek=4096 conv=notrunc,fsync
+sudo mount /dev/sda2 /mnt
+sudo cp -r ../kernel/linux/tmp/lib/modules/* /mnt/lib/modules
+sync
+sudo umount /mnt
+Eject sdcard/USB2-SATA-SSD from PC.

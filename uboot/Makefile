@@ -1,8 +1,9 @@
 export OUT=$(PWD)/out
 export BOOT=$(OUT)/boot.img
+export BOOT_UUID=95E46EA5
 export BOOTUSB=$(OUT)/bootusb.img
 export ARCH=arm64
-export CROSS_COMPILE=/usr/local/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+export CROSS_COMPILE=/usr/bin/aarch64-linux-gnu-
 
 u-boot: builduboot
 
@@ -15,7 +16,7 @@ builduboot:
 boot:
 	mkimage -A arm64 -O linux -T script -C none -d boot_cmd.txt $(OUT)/boot.scr.uimg; \
 	\rm -f $(BOOT); \
-	mkfs.vfat -n "boot" -S 512 -C ${BOOT} 512000; \
+	mkfs.vfat -n "boot" -i ${BOOT_UUID} -S 512 -C ${BOOT} 512000; \
 	mmd -i ${BOOT} ::/overlays; \
 	mcopy -i ${BOOT} -s $(OUT)/boot.scr.uimg ::; \
 	mcopy -i ${BOOT} -s ./config.txt ::; \
@@ -28,7 +29,7 @@ boot:
 	mcopy -i ${BOOT} -s ../kernel/linux/arch/arm64/boot/dts/overlays/*.dtb* ::/overlays
 	mkimage -A arm64 -O linux -T script -C none -d boot_usbcmd.txt $(OUT)/bootusb.scr.uimg; \
 	\rm -f $(BOOTUSB); \
-	mkfs.vfat -n "boot" -S 512 -C ${BOOTUSB} 512000; \
+	mkfs.vfat -n "boot" -i ${BOOT_UUID} -S 512 -C ${BOOTUSB} 512000; \
 	mmd -i ${BOOTUSB} ::/overlays; \
 	mcopy -i ${BOOTUSB} -s $(OUT)/bootusb.scr.uimg ::boot.scr.uimg; \
 	mcopy -i ${BOOTUSB} -s ./config.txt ::; \

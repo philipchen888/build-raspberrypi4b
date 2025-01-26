@@ -41,8 +41,8 @@ sudo cp -rf ../linux/linux/tmp/lib/modules $TARGET_ROOTFS_DIR/lib
 sudo mkdir -p $TARGET_ROOTFS_DIR/packages
 sudo cp -rf ../packages/$ARCH/* $TARGET_ROOTFS_DIR/packages
 sudo cp -rf ../linux/linux/tmp/boot/* $TARGET_ROOTFS_DIR/boot
+sudo mkdir -p $TARGET_ROOTFS_DIR/boot/firmware
 sudo cp ../linux/patches/40_custom_uuid $TARGET_ROOTFS_DIR/boot
-sudo cp ../linux/patches/debian/fstab $TARGET_ROOTFS_DIR/boot
 
 # overlay folder
 sudo cp -rf ../overlay/* $TARGET_ROOTFS_DIR/
@@ -67,11 +67,10 @@ apt-get update
 apt-get upgrade -y
 apt-get install -y build-essential git wget grub-efi-arm64 e2fsprogs zstd
 
-# Install and configure GRUB
-cp /boot/fstab /etc/fstab
-rm -rf /boot/fstab
-mkdir -p /boot/efi
-grub-install --target=arm64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+ls -la /boot/firmware
+rm -rf /boot/firmware
+mkdir -p /boot/firmware
+grub-install --target=arm64-efi --efi-directory=/boot/firmware --bootloader-id=GRUB
 update-grub
 
 cp /boot/40_custom_uuid /etc/grub.d/
@@ -85,14 +84,17 @@ MUTTER_DEBUG_FORCE_KMS_MODE=simple
 CLUTTER_PAINT=disable-dynamic-max-render-time
 MOUSE_EOF
 
-# Migrate extlinux.conf to GRUB
-rm -rf /boot/extlinux
 cat << GRUB_EOF > /etc/default/grub
 GRUB_DEFAULT="Boot from UUID"
 GRUB_TIMEOUT=5
 GRUB_CMDLINE_LINUX_DEFAULT="quiet"
 GRUB_CMDLINE_LINUX=""
 GRUB_EOF
+
+cat << FSTAB_EOF > /etc/fstab
+UUID=B921B045-1DF0-41C3-AF44-4C6F280D3FAE /  ext4    errors=remount-ro   0   1
+UUID=95E4-6EA5  /boot/firmware  vfat    umask=0077      0       1
+FSTAB_EOF
 
 update-grub
 
@@ -115,7 +117,8 @@ sed -i 's/#WaylandEnable=false/WaylandEnable=true/g' /etc/gdm3/custom.conf
 systemctl enable rc-local
 systemctl enable resize-helper
 chsh -s /bin/bash linaro
-update-initramfs -c -k 6.8.0-rc4
+update-initramfs -c -k 6.12.11
+sync
 
 #---------------Clean--------------
 rm -rf /var/lib/apt/lists/*

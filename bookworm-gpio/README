@@ -1,8 +1,21 @@
-Build bullseye-lxde pn532nfc test sdcard for raspberrypi4b:
+Build bookworm-gpio sdcard for raspberrypi4b:
 
 Parts required:
-1. nfc host controller card: Adafruit PN532 NFC Shield.
-2. Mifare Classic card and Mifare Ultralight tag.
+1. Seeed Grove starter kit LED, button, buzzer, Grove-LCD RGB Backlight V3.0 JHD1313M2.
+2. Analog Servo.
+3. Adafruit SSD1306 128x32 SPI OLED Display.
+4. nfc host controller card: Adafruit PN532 NFC Shield.
+5. Mifare Classic card and Mifare Ultralight tag.
+
+The following 8 tests are included: ( see below for tests summary )
+1. uart test
+2. led test
+3. button test
+4. pwm led test
+5. i2c lcd test
+6. tongsong
+7. servo
+8. spi oled test
 
 The following 8 pn532nfc tests are included:
 1. iso14443a_uid  ( read nfc card's uid )
@@ -14,23 +27,24 @@ The following 8 pn532nfc tests are included:
 7. updatendef     ( write read mifareclassic_ndef )
 8. ndeftoclassic  ( change mifareclassic_ndef to mifareclassic )
 
-Input files: ../uboot/out/boot.img
-             ../rootfs-bullseye/linaro-rootfs.img
+Input files: ../uboot/out/boot.img   bootusb.img
+             ../rootfs-bookwormgpio/linaro-rootfs.img
 
-./mksdcardimg.sh
-
-The result is in sdcard.img
-
-Plugin SATA SSD to PC.
-sudo dd if=./sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
-Eject SATA SSD from PC, plugin SATA SSD to PC again, cp ./pn532nfc/* /media/$USER/rootfs/home/linaro
+Plugin sdcard/USB2-SATA-SSD to PC.
+sudo ./mksdcardimg.sh    ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
+sudo mount /dev/sda2 /mnt
+cp ./gpiotest/* /mnt/home/linaro
+cp ./pn532nfc/* /mnt/home/linaro
 sync
-Eject SATA SSD from PC.
+sudo umount /mnt
+Eject sdcard/USB2-SATA-SSD from PC.
 
-Plugin SATA SSD to raspberrypi4b USB2 port.
+Plugin sdcard/USB2-SATA-SSD to rpi4b.
+
 Login:
 Username: linaro
 Password: linaro
+Setup wifi. Disable power saving and screen saver.
 uname -a
 lsb_release -a
 sudo ifconfig
@@ -42,29 +56,118 @@ sudo apt upgrade
 sync
 sudo shutdown -h now
 Power off, power on
-Disable power saving and screen saver.
+glxinfo | grep OpenGL
 date
+Check display mode: ( wayland or x11 )
+echo $XDG_SESSION_TYPE
+Check audio driver: ( pulseaudio or pipewire )
+pactl info
 
-Install raspi-config:
-wget https://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20211019_all.deb
-sudo apt -y install libnewt0.52 whiptail parted triggerhappy lua5.1 alsa-utils
-sudo apt install -fy
-sudo dpkg -i ./raspi-config_20211019_all.deb
-sudo raspi-config  ( Interface Options -> I2C -> Yes -> Ok -> Finish )
+sudo apt -y install build-essential python3-pip python3-setuptools python3-dev python3-smbus python3-spidev python3-smbus2 python3-serial python3-periphery speedtest-cli ffmpeg mpv glmark2-es2-wayland pandoc firefox-esr
 
-sudo apt -y install build-essential python3-pip python3-setuptools python3-dev python3-smbus
-sudo pip3 install spidev serial pyserial python-periphery smbus2 
+sudo cat /sys/kernel/debug/gpio
+
+gcc gpio_test.c -o gpio_test
+sudo ./gpio_test
+sudo ./gpio_test.py
 
 wget https://github.com/WiringPi/WiringPi/archive/refs/tags/3.2.zip
 unzip 3.2.zip
 cd WiringPi-3.2
 ./build
+cd ../
 gpio -v
 
 Check kernel driver readiness:
-ls /dev  ( look for i2c-1, spidev0.0 )
+ls /dev  ( look for i2c-1, ttyAMA2, spidev0.0 )
+sudo cat /proc/device-tree/soc/serial@7e201400/status  ( uart 2 )
+sudo cat /proc/device-tree/soc/pwm@7e20c000/status  ( pwm 1 )
 sudo cat /proc/device-tree/soc/i2c@7e804000/status  ( i2c-1 )
 sudo cat /proc/device-tree/soc/spi@7e204000/status  ( spi-0 )
+
+-----------------------------------------------------------------------------
+
+speedtest-cli --secure
+
+glmark2-es2-wayland
+
+aplay -l
+pavucontrol  ( select card 0 as default )
+
+firefox -> youtube.com -> search YmDNhi07_Ho
+
+git clone https://github.com/yt-dlp/yt-dlp.git
+cd yt-dlp
+make
+cd ../
+~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4
+mpv swan.mp4
+
+sudo rfkill list
+hciconfig hci0
+hcitool dev
+hciconfig -a
+
+-----------------------------------------------------------------------------
+
+Here are the summary of the tests:
+
+These tests used Seeed Grove starter kit LED, button, buzzer, Grove-LCD RGB Backlight V3.0 JHD1313M2, Analog Servo and Adafruit SSD1306 128x32 SPI OLED Display.
+
+1. uart test.
+   This test will send uart tx to uart rx for loopback.
+   It sends 0 to 255 to uart tx and receives 0 to 255 from uart rx.
+   Connect gpio pin 27 to pin 28. ( uart 2 ).
+
+2. led test.
+   This test will blink led 5 times.
+   Connect gpio pin 18 to led control.
+   Connect gpio pin  2 to led 5V.
+   Connect gpio pin  9 to led ground.
+
+3. button test.
+   Push button 10 times. The led will on/off 10 times.
+   Connect gpio pin 18 to led control.
+   Connect gpio pin  2 to led 5V.
+   Connect gpio pin  9 to led ground.
+   Connect gpio pin 16 to button control.
+   Connect gpio pin  4 to button 5V.
+   Connect gpio pin  6 to button ground.
+
+4. pwm led test.
+   This test will dim led 10 times.
+   Connect gpio pin 33 to led control. ( pwm 1 ).
+   Connect gpio pin  2 to led 5V.
+   Connect gpio pin  9 to led ground.
+
+5. i2c lcd test.
+   This test will change lcd backlight color for 5 cycles.
+   Then it will display two sentences on lcd display.
+   Connect gpio pin  3 to lcd display SDA. ( i2c-1 ).
+   Connect gpio pin  5 to lcd display SCL.
+   Connect gpio pin  2 to lcd display 5V.
+   Connect gpio pin  9 to lcd display ground.
+
+6. tongsong.
+   This test will generate song using buzzer.
+   Connect gpio pin 33 to buzzer control. ( pwm 1 )
+   Connect gpio pin  2 to buzzer 5V.
+   Connect gpio pin  9 to buzzer ground.
+
+7. servo.
+   This test will turn servo 45 degree - 90 degree - 45 degree - 0 degree etc.
+   Connect gpio pin 33 to servo control. ( pwm 1 )
+   Connect gpio pin  2 to servo 5V.
+   Connect gpio pin  9 to servo ground.
+
+8. spi oled test.
+   This test will show some ascii characters on the oled display.
+   Connect gpio pin 18 to oled display DC.    ( spi-0 )
+   Connect gpio pin 24 to oled display CS.
+   Connect gpio pin 19 to oled display TX.
+   Connect gpio pin 23 to oled display CLK.
+   Connect gpio pin  1 to oled display 3.3V.
+   Connect gpio pin  9 to oled display ground.
 
 -----------------------------------------------------------------------------
 

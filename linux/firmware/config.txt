@@ -59,7 +59,7 @@ dtoverlay=uart2
 dtparam=audio=on
 
 # Enable DRM VC4 V3D driver on top of the dispmanx display stack
-dtoverlay=vc4-fkms-v3d
+dtoverlay=vc4-kms-v3d
 # gpu_mem=512
 max_framebuffers=2
 

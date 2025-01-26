@@ -4,28 +4,22 @@ Input files: ../rootfs-ubuntu-oracular/linaro-esp.img
              ../rootfs-ubuntu-oracular/linaro-rootfs.img
 
 cd ~/Downloads
-wget https://github.com/pftf/RPi4/releases/download/v1.38/RPi4_UEFI_Firmware_v1.38.zip
+wget https://github.com/pftf/RPi4/releases/download/v1.40/RPi4_UEFI_Firmware_v1.40.zip
 
 cd ~/build-raspberrypi4b/ubuntu-oracular
 
-Plugin sdcard to PC.
-sudo ./mkuefiboot.sh
-sudo mkfs.vfat /dev/sda1
-sudo fdisk -l /dev/sda
-sudo mount -t vfat /dev/sda1 /mnt
+Plugin sdcard/USB2-SATA-SSD to PC.
+sudo ./mksdcardimg.sh
+sudo mount /dev/sda1 /mnt
 cd /mnt
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.38.zip
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.40.zip
 cd ~/build-raspberrypi4b/ubuntu-oracular
 sync
 sudo umount /mnt
-Eject sdcard from PC.
+Eject sdcard/USB2-SATA-SSD from PC.
 
-Plugin USB2-SATA-SSD to PC.
-sudo ./mkusbssd.sh
-Eject USB2-SATA-SSD from PC.
-
-Plugin sdcard and USB2-SATA-SSD to rpi4b.
-Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI.
+Plugin sdcard/USB2-SATA-SSD to rpi4b.
+Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
 Login:
 Username: linaro
 Password: linaro
@@ -69,6 +63,7 @@ pavucontrol  ( select card 0 as default )
 
 sudo add-apt-repository ppa:mozillateam/ppa
 sudo apt update
+sudo apt upgrade
 sudo apt install firefox-esr
 firefox -> youtube.com -> search YmDNhi07_Ho
 
@@ -83,3 +78,18 @@ sudo rfkill list
 hciconfig hci0
 hcitool dev
 hciconfig -a
+
+-------------------------------------------------------
+
+Change to u-boot and vendor kernel:
+
+cd ~/build-raspberrypi4b/ubuntu-oracular
+
+Plugin sdcard/USB2-SATA-SSD to PC.  ( for USB2-SATA-SSD change to uboot/out/bootusb.img )
+sudo dd if=../uboot/out/boot.img of=/dev/sda bs=4096 seek=4096 conv=notrunc,fsync
+sudo mount /dev/sda2 /mnt
+sudo cp -r ../kernel/linux/tmp/lib/modules/* /mnt/lib/modules
+sync
+sudo umount /mnt
+Eject sdcard/USB2-SATA-SSD from PC.
+

@@ -19,8 +19,8 @@ DISPLAY_RGB_ADDR = 0x62
 DISPLAY_TEXT_ADDR = 0x3e
 
 spi = spidev.SpiDev()
-led = 24
-switch = 23
+led = 536
+switch = 535
 
 def readLine(port):
     s = ""
