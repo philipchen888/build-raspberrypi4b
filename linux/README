@@ -1,20 +1,8 @@
 Compile mainline kernel:
 
-wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.12.11.tar.gz
-tar -xzf linux-6.12.11.tar.gz
-mv linux-6.12.11 linux
-vi ./linux/arch/arm64/configs/defconfig ( add
-CONFIG_VIDEO_DEV=y
-CONFIG_MEDIA_CONTROLLER=y
-CONFIG_VIDEO_V4L2=y
-CONFIG_VIDEO_V4L2_SUBDEV_API=y
-CONFIG_VIDEO_BCM2835_UNICAM=y
-CONFIG_VIDEO_BCM2835=y
-CONFIG_MEDIA_SUPPORT=y
-CONFIG_MEDIA_CONTROLLER_DVB=y
-CONFIG_VIDEO_RASPBERRYPI_PISP_BE=y
-CONFIG_VIDEO_BCM2835_ISP=y
-)
+wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.13.tar.gz
+tar -xzf linux-6.13.tar.gz
+mv linux-6.13 linux
 \rm -rf out; mkdir out;
 
 make kernel

@@ -1,8 +1,8 @@
 Build bookworm-uefi sdcard image for raspberrypi4b:
 
 cd ~/Downloads
-wget https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/debian-12.8.0-arm64-netinst.iso
-wget https://github.com/pftf/RPi4/releases/download/v1.38/RPi4_UEFI_Firmware_v1.38.zip 
+wget https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/debian-12.9.0-arm64-netinst.iso
+wget https://github.com/pftf/RPi4/releases/download/v1.40/RPi4_UEFI_Firmware_v1.40.zip 
 
 cd ~/build-raspberrypi4b/bookworm-uefi
 
@@ -12,8 +12,8 @@ sudo mkfs.vfat /dev/sda1
 sudo fdisk -l /dev/sda
 sudo mount -t vfat /dev/sda1 /mnt
 cd /mnt
-sudo 7z x ~/Downloads/debian-12.8.0-arm64-netinst.iso
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.38.zip
+sudo 7z x ~/Downloads/debian-12.9.0-arm64-netinst.iso
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.40.zip
 cd ~/build-raspberrypi4b/bookworm-uefi
 sync
 sudo umount /mnt
@@ -39,8 +39,8 @@ Eject USB2 sata ssd from PC.
 Plugin USB2 sata ssd to rpi4b USB2 port. Unplug ethernet cable from rpi4b. Power on rpi4b.
 uname -a
 lsb_release -a
-sudo nmcli dev wifi connect "SSID" password "PASSWORD"
-sudo apt update; sudo apt upgrade; sudo apt install net-tools;
+Setup wifi.
+sudo apt update; sudo apt upgrade; sudo apt install pulseaudio-utils;
 Check if Debian is running UEFI mode:
 ls /sys/firmware/efi
 Check display mode: ( wayland or x11 )
@@ -48,10 +48,107 @@ echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install build-essential speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2 pandoc pavucontrol
+sudo apt install build-essential speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2 pandoc vlc vlc-plugin-video-output pavucontrol
 
 speedtest-cli --secure
 
 glmark2-es2
 
-mainline kernel 6.1.0-28-arm64 doesn't support rpi4b sound, bluetooth.
+mainline kernel 6.1.0-30-arm64 doesn't support rpi4b sound, bluetooth.
+
+---------------------------------------------------------------
+
+Install vendor kernel 6.13.1-v8+
+
+git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.13.y
+vi ./linux/arch/arm64/configs/bcm2711_defconfig ( delete CONFIG_CMDLINE, change CONFIG_I2C_CHARDEV=m to CONFIG_I2C_CHARDEV=y )
+
+Install ovmerge from  https://github.com/raspberrypi/utils
+cd ./linux/arch/arm/boot/dts/broadcom
+cp bcm2711-rpi-4-b.dts bcm2711-rpi-4-b.dts.org
+ovmerge -c -p bcm2711-rpi-4-b.dts,i2c1=on,i2c_arm=on,spi=on,audio=on ../overlays/uart2-overlay.dts ../overlays/vc4-kms-v3d-pi4-overlay.dts,cma-512 ../overlays/pwm-2chan-overlay.dts,pin=12,func=4,pin2=13,func2=4 > custom.dts
+cp custom.dts bcm2711-rpi-4-b.dts
+cd ~/linux
+sudo make mrproper
+make ARCH=arm64 bcm2711_defconfig
+make ARCH=arm64 all -j$(nproc)        ( this may take 4 hours to compile )
+sudo make ARCH=arm64 modules_install
+sudo make ARCH=arm64 dtbs_install
+sudo make ARCH=arm64 install
+
+cd ../
+ls -la /boot
+sudo e2label /dev/sda2 rootfs
+sudo blkid /dev/sda2   ( look for LABEL and UUID )
+
+sudo vi /etc/grub.d/40_custom_uuid ( add
+#!/bin/sh
+exec tail -n +3 $0
+
+menuentry "Boot from UUID" {
+    search --no-floppy --fs-uuid --set=root --hint='usb0,gpt2' --hint='mmcblk0,gpt2' --hint='mmcblk1,gpt2' 9f686c2e-1c9a-48df-9a3d-9d838236d3d7
+    echo    'Loading Linux 6.13.1-v8+ ...'
+    linux /boot/vmlinuz-6.13.1-v8+ root=LABEL=rootfs rootwait rw
+    echo    'Loading initial ramdisk ...'
+    initrd /boot/initrd.img-6.13.1-v8+
+    devicetree /boot/dtbs/6.13.1-v8+/broadcom/bcm2711-rpi-4-b.dtb
+}
+)
+
+Note: change the above UUID to real UUID like: b3adbe54-ab88-4da5-a9a6-08cf87a09d69
+
+sudo chmod +x /etc/grub.d/40_custom_uuid
+
+sudo vi /etc/default/grub ( change GRUB_DEFAULT=0 to GRUB_DEFAULT="Boot from UUID" )
+sudo update-grub  ( generate grub.cfg )
+cd
+sync
+
+sudo mount /dev/sda1 /mnt
+sudo vi /mnt/config.txt ( delete last 4 lines, add
+max_framebuffers=2
+enable_uart=1
+arm_freq=2000
+)
+sync
+sudo umount /mnt
+sudo reboot
+
+uname -a
+lsb_release -a
+Check if Debian is running UEFI mode:
+ls /sys/firmware/efi
+sudo vi /etc/apt/sources.list ( add
+deb http://archive.raspberrypi.org/debian bookworm main
+)
+su -
+wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | apt-key add -
+mv /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
+exit
+sudo apt update
+sudo apt upgrade -y
+sudo apt install git zip rfkill speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc firefox-esr vlc vlc-plugin-video-output
+
+speedtest-cli --secure
+
+glmark2-es2-wayland
+
+aplay -l
+pavucontrol  ( select hdmi as default )
+
+firefox -> youtube.com -> search YmDNhi07_Ho
+
+git clone https://github.com/yt-dlp/yt-dlp.git
+cd yt-dlp
+make
+cd ../
+~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
+mpv --hwdec=v4l2m2m-copy --log-file=mpv.log swan.mp4
+grep Using mpv.log
+cvlc --gl=wgl --glconv=any swan.mp4
+
+sudo rfkill list
+hciconfig hci0
+hcitool dev
+hciconfig -a
+

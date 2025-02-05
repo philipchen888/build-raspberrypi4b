@@ -14,6 +14,11 @@ sudo mount /dev/sda1 /mnt
 cd /mnt
 sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.40.zip
 cd ~/build-raspberrypi4b/bookworm-gnome
+sudo vi /mnt/config.txt ( delete last 4 lines, add
+max_framebuffers=2
+enable_uart=1
+arm_freq=2000
+)
 sync
 sudo umount /mnt
 Eject sdcard/USB2-SATA-SSD from PC.
@@ -35,6 +40,7 @@ sudo apt upgrade
 sync
 sudo shutdown -h now
 Power off, power on
+sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
 glxinfo | grep OpenGL
 date
 Check if Debian is running UEFI mode:
@@ -44,14 +50,14 @@ echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc firefox-esr
+sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc firefox-esr vlc vlc-plugin-video-output
 
 speedtest-cli --secure
 
 glmark2-es2-wayland
 
 aplay -l
-pavucontrol  ( select card 0 as default )
+pavucontrol  ( select hdmi as default )
 
 firefox -> youtube.com -> search YmDNhi07_Ho
 
@@ -59,24 +65,12 @@ git clone https://github.com/yt-dlp/yt-dlp.git
 cd yt-dlp
 make
 cd ../
-~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4
-mpv swan.mp4
+~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
+mpv --hwdec=auto-copy --log-file=mpv.log swan.mp4
+grep Using mpv.log
+cvlc --gl=wgl --glconv=any swan.mp4
 
 sudo rfkill list
 hciconfig hci0
 hcitool dev
 hciconfig -a
-
--------------------------------------------------------
-
-Change to u-boot and vendor kernel:
-
-cd ~/build-raspberrypi4b/bookworm-gnome
-
-Plugin sdcard/USB2-SATA-SSD to PC.  ( for USB2-SATA-SSD change to uboot/out/bootusb.img )
-sudo dd if=../uboot/out/boot.img of=/dev/sda bs=4096 seek=4096 conv=notrunc,fsync
-sudo mount /dev/sda2 /mnt
-sudo cp -r ../kernel/linux/tmp/lib/modules/* /mnt/lib/modules
-sync
-sudo umount /mnt
-Eject sdcard/USB2-SATA-SSD from PC.

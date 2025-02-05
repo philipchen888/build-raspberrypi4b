@@ -15,8 +15,8 @@ mkfs.vfat -n "boot" -i ${BOOT_UUID} -S 512 -C ${BOOTIMAGE} 512000
 mmd -i ${BOOTIMAGE} ::/EFI
 mmd -i ${BOOTIMAGE} ::/EFI/boot
 mmd -i ${BOOTIMAGE} ::/EFI/debian
-mcopy -i ${BOOTIMAGE} -s ../linux/patches/debian/grubaa64.efi ::/EFI/boot/bootaa64.efi
-mcopy -i ${BOOTIMAGE} -s ../linux/patches/debian/grubaa64.efi ::/EFI/debian
-mcopy -i ${BOOTIMAGE} -s ../linux/patches/debian/grub.cfg ::/EFI/debian
+mcopy -i ${BOOTIMAGE} -s ../kernel/patches/debian/grubaa64.efi ::/EFI/boot/bootaa64.efi
+mcopy -i ${BOOTIMAGE} -s ../kernel/patches/debian/grubaa64.efi ::/EFI/debian
+mcopy -i ${BOOTIMAGE} -s ../kernel/patches/debian/grub.cfg ::/EFI/debian
 
 echo Boot Image: ${BOOTIMAGE}

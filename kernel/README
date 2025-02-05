@@ -1,7 +1,14 @@
 Compile vendor's kernel:
 
-git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.6.y
-vi ./linux/arch/arm64/configs/bcm2711_defconfig ( change CONFIG_I2C_CHARDEV=m to CONFIG_I2C_CHARDEV=y )
+git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.13.y
+vi ./linux/arch/arm64/configs/bcm2711_defconfig ( delete CONFIG_CMDLINE, change CONFIG_I2C_CHARDEV=m to CONFIG_I2C_CHARDEV=y )
+
+Install ovmerge from  https://github.com/raspberrypi/utils
+cd ./linux/arch/arm/boot/dts/broadcom
+cp bcm2711-rpi-4-b.dts bcm2711-rpi-4-b.dts.org
+ovmerge -c -p bcm2711-rpi-4-b.dts,i2c1=on,i2c_arm=on,spi=on,audio=on ../overlays/uart2-overlay.dts ../overlays/vc4-kms-v3d-pi4-overlay.dts,cma-512 ../overlays/pwm-2chan-overlay.dts,pin=12,func=4,pin2=13,func2=4 > custom.dts
+cp custom.dts bcm2711-rpi-4-b.dts
+cd ../../../../../../
 \rm -rf out; mkdir out;
 
 make kernel

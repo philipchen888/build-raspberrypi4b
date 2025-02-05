@@ -2,12 +2,12 @@
 enable_uart=1
 # Run in 64-bit mode
 arm_64bit=1
-dtparam=i2c_arm=on
-dtparam=spi=on
-dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4
-dtoverlay=uart2
-dtparam=audio=on
-dtoverlay=vc4-kms-v3d
+#dtparam=i2c_arm=on
+#dtparam=spi=on
+#dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4
+#dtoverlay=uart2
+#dtparam=audio=on
+#dtoverlay=vc4-kms-v3d
 max_framebuffers=2
 # Use Das U-Boot
 kernel=u-boot.bin

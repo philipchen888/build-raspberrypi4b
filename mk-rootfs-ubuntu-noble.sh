@@ -35,14 +35,14 @@ trap finish ERR
 echo -e "\033[36m Extract image \033[0m"
 sudo tar -xpf binary-tar.tar.gz
 
-sudo cp -rf ../linux/linux/tmp/lib/modules $TARGET_ROOTFS_DIR/lib
+sudo cp -rf ../kernel/linux/tmp/lib/modules $TARGET_ROOTFS_DIR/lib
 
 # packages folder
 sudo mkdir -p $TARGET_ROOTFS_DIR/packages
 sudo cp -rf ../packages/$ARCH/* $TARGET_ROOTFS_DIR/packages
-sudo cp -rf ../linux/linux/tmp/boot/* $TARGET_ROOTFS_DIR/boot
+sudo cp -rf ../kernel/linux/tmp/boot/* $TARGET_ROOTFS_DIR/boot
 sudo mkdir -p $TARGET_ROOTFS_DIR/boot/firmware
-sudo cp ../linux/patches/40_custom_uuid $TARGET_ROOTFS_DIR/boot
+sudo cp ../kernel/patches/40_custom_uuid $TARGET_ROOTFS_DIR/boot
 
 # overlay folder
 sudo cp -rf ../overlay/* $TARGET_ROOTFS_DIR/
@@ -117,7 +117,7 @@ sed -i 's/#WaylandEnable=false/WaylandEnable=true/g' /etc/gdm3/custom.conf
 systemctl enable rc-local
 systemctl enable resize-helper
 chsh -s /bin/bash linaro
-update-initramfs -c -k 6.12.11
+update-initramfs -c -k 6.13.1-v8+
 sync
 
 #---------------Clean--------------
