@@ -2,83 +2,96 @@ Build yocto sdcard image for raspberrypi4b:
 
    mkdir ${HOME}/download
    mkdir ${HOME}/sstate-cache
-   git clone git://git.yoctoproject.org/poky --depth=1 -b dunfell
+   git clone git://git.yoctoproject.org/poky --depth=1 -b master
    cd poky
-   git clone git://git.openembedded.org/meta-openembedded.git --depth=1 -b dunfell
-   git clone git://git.yoctoproject.org/meta-raspberrypi.git --depth=1 -b dunfell
+   git clone git://git.openembedded.org/meta-openembedded.git --depth=1 -b master
+   git clone https://github.com/agherzan/meta-raspberrypi.git --depth=1 -b master
+
    source oe-init-build-env
    cd ../../
    make apply_patches
 
    cd poky; source oe-init-build-env;
    bitbake -s
-   bitbake -c cleansstate core-image-x11
-   bitbake -k core-image-x11
+   bitbake -c cleansstate core-image-weston
+   bitbake -k core-image-weston
 
-   The result is in ./tmp/deploy/images/raspberrypi4-64/core-image-x11-raspberrypi4-64.wic.bz2
-   bzip2 -d -f ./tmp/deploy/images/raspberrypi4-64/core-image-x11-raspberrypi4-64.wic.bz2
-   Plugin SATA SSD to PC.
-   sudo dd if=./tmp/deploy/images/raspberrypi4-64/core-image-x11-raspberrypi4-64.wic of=/dev/sda bs=4096 conv=notrunc,fsync
+   The result is in ./tmp/deploy/images/raspberrypi4-64/core-image-weston-raspberrypi4-64.rootfs.wic.bz2
+   bzip2 -d -f ./tmp/deploy/images/raspberrypi4-64/core-image-weston-raspberrypi4-64.rootfs.wic.bz2
+   Plugin sdcard to PC.
+   sudo dd if=./tmp/deploy/images/raspberrypi4-64/core-image-weston-raspberrypi4-64.rootfs.wic of=/dev/sda bs=4096 conv=notrunc,fsync
 
-   Eject SATA SSD from PC. Plugin SATA SSD to PC again.
-   sudo vi /media/$USER/boot/config.txt ( delete dtparam=i2c1=on, add
+   sudo mount /dev/sda1 /mnt
+   sudo vi /mnt/config.txt ( add
    dtparam=audio=on
    dtparam=i2c_arm=on
    dtparam=spi=on
    enable_uart=1
-   dtoverlay=vc4-fkms-v3d
    max_framebuffers=2
    dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4
    dtoverlay=uart2 )
-
-   sudo vi /media/$USER/*/etc/network/interfaces ( delete everything after iface lo inet loopback )
+   sudo blkid /dev/sda2
+   sudo vi /mnt/cmdline.txt ( delete dwc_otg.lpm_enable=0 net.ifnames=0, change /dev/mmcblk0p2 to PARTUUID=076c4a2a-02 , add video=HDMI-A-1:1920x1080@60,margin_left=60,margin_right=60,margin_top=40,margin_bottom=40 cfg80211.ieee80211_regdom=US )
    sync
-   Eject SATA SSD from PC.
+   sudo umount /mnt
+
+   sudo mount /dev/sda2 /mnt
+   sudo blkid /dev/sda2
+   sudo blkid /dev/sda1
+   sudo cp ~/build-raspberrypi4b/kernel/firmware/fstab /mnt/etc/
+   sudo vi /mnt/etc/fstab ( change UUID )
+   sudo mkdir -p /mnt/boot/firmware
+   sudo vi /mnt/etc/network/interfaces ( delete everything after iface lo inet loopback, add
+   auto eth0
+   iface eth0 inet dhcp
+   )
+   sudo vi /mnt/etc/xdg/weston/weston.ini ( add
+   [core]
+   xwayland=true
+   idle-time=0
+
+   [libinput]
+   enable_tap=true
+
+   [shell]
+   locking=false
+   cursor-theme=Adwaita
+   cursor-size=16
+   )
+   sync
+   sudo umount /mnt
+   Eject sdcard from PC.
 
    \rm -rf ./tmp/work
 
-Plugin SATA SSD to raspberrypi4b USB2 port.
-login:
-username: root
-password: rock
+Plugin sdcard to rpi4b. Plugin ethernet cable to rpi4b. Power on rpi4b.
 
-nmcli dev wifi connect "SSID" password "PASSWORD"
+login: root
+password: none
+passwd
+sudo ifconfig
+uname -a
+adduser linaro
+usermod -aG sudo linaro
+sudo visudo /etc/sudoers ( add linaro ALL=(ALL:ALL) ALL )
+sync
+reboot
+ssh root@192.168.86.250
 
 \rm /etc/localtime
 ln -s /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
 date
 
-adduser linaro
-
 aplay -l
-vi /etc/asound.conf ( add
-pcm.!default {
-type hw
-card 0
-}
-ctl.!default {
-type hw
-card 0
-}
 
-To disable screen blank:
-vi /etc/rc.local ( add
-#!/bin/sh
-/usr/bin/xset -dpms s off s noblank s 0 0 s noexpose
+systemctl restart weston
 
-chmod 755 /etc/rc.local
+glmark2-es2-wayland
 
-sync
-reboot
+aplay /home/linaro/song.wav
+mpv --no-video /home/linaro/song.mp3
+mpv /home/linaro/video.mp4
 
-source /etc/rc.local
-
-glmark2-es2
-
-aplay /home/linaro/yoursong.wav
-mpv --no-video /home/linaro/yoursong.mp3
-mpv /home/linaro/yourvideo.mp4
-
-hciconfig hci0 up
+hciconfig hci0
 hciconfig -a
 hcitool dev
