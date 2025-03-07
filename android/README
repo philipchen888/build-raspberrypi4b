@@ -31,7 +31,7 @@ Build android sdcard image for raspberrypi4b.
    Eject USB memory stick, and plug it to rpi4b.
    Boot to TWRP recovery: Settings -> System -> Raspberry Pi settings -> Reboot to recovery -> F5 ( shutdown ) -> power on.
    Install AOSP15-20241210-KonstaKANG-rpi4-ota.zip from your selected storage:
-   Install -> Select Storage -> USB -> OK -> AOSP13-20230615-KonstaKANG-rpi4-ota.zip -> swipe -> back -> Install NikGapps-Basic-arm64-15-20241212-signed.zip -> swipe -> Reboot -> system
+   Install -> Select Storage -> USB -> OK -> AOSP15-20241210-KonstaKANG-rpi4-ota.zip -> swipe -> back -> Install NikGapps-Basic-arm64-15-20241212-signed.zip -> swipe -> Reboot -> system
 
    Enable sound: Settings -> System -> Raspberry Pi settings -> Audio device (HDMI0).
 
@@ -40,8 +40,8 @@ Build android sdcard image for raspberrypi4b.
    adb root
    adb shell 'sqlite3 /data/user/$(cmd activity get-current-user)/*/*/gservices.db "select * from main where name = \"android_id\";"'
    This will get device gsf id
-   Open https://google.com/android/uncertified on your Raspberry Pi and paste the GSF code. After that, click on “Register“
-   Wait for 30 minutes. Shutdown android ( click F5 ). Power on.
+   Open https://google.com/android/uncertified on your Raspberry Pi and paste the GSF code. After that, click on “Register“. Shutdown android ( click F5 ).
+   Wait for 30 minutes. Power on.
    Open Google Play Store -> sign in. Install YouTube, Solitaire etc.
 
 
@@ -103,3 +103,42 @@ adb uninstall com.example.myanalogclock
 adb uninstall com.example.randomsong
 
 -----------------------------------------------------
+
+Compile android 15 from source:  ( It may take 8 hours )
+
+sudo apt remove repo
+wget 'https://storage.googleapis.com/git-repo-downloads/repo' -P /tmp/
+sudo cp /tmp/repo /usr/local/bin/repo
+sudo chmod +x /usr/local/bin/repo
+
+Need to increase swap to 48GB if DDR ram size is 16 GB. ( DDR ram + swap = 64 GB ) 
+See https://stackoverflow.com/questions/77278089/aosp-14-build-error-100-1-1-analyzing-android-bp-files-and-generating-ninja-f
+grep Swap /proc/meminfo
+# Turn swap off
+sudo swapoff -a
+# Create an empty swapfile
+sudo dd if=/dev/zero of=/swapfile bs=1G count=48
+sync
+sudo chmod 0600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+grep Swap /proc/meminfo
+sudo reboot
+
+See https://stackoverflow.com/questions/76055884/how-to-build-full-android-aosp-images-for-raspberry-pi-4
+See https://github.com/raspberry-vanilla/android_local_manifest/tree/android-15.0
+
+sudo apt-get install bc coreutils dosfstools e2fsprogs fdisk kpartx mtools ninja-build pkg-config python3-pip meson python3-mako python3-jinja2 python3-ply python3-jinja2 python3-yaml
+
+mkdir android15; cd android15;
+repo init -u https://android.googlesource.com/platform/manifest -b android-15.0.0_r20 --depth=1
+curl -o .repo/local_manifests/manifest_brcm_rpi.xml -L https://raw.githubusercontent.com/raspberry-vanilla/android_local_manifest/android-15.0/manifest_brcm_rpi.xml --create-dirs
+curl -o .repo/local_manifests/remove_projects.xml -L https://raw.githubusercontent.com/raspberry-vanilla/android_local_manifest/android-15.0/remove_projects.xml
+repo sync
+. build/envsetup.sh
+lunch aosp_rpi4-bp1a-userdebug
+make bootimage systemimage vendorimage -j$(nproc)
+./rpi4-mkimg.sh
+
+The result is in out/target/product/rpi4/RaspberryVanillaAOSP15-20250306-rpi4.img
+sudo dd if=./out/target/product/rpi4/RaspberryVanillaAOSP15-20250306-rpi4.img of=/dev/sda bs=4096 conv=notrunc,fsync
