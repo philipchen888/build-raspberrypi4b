@@ -9,29 +9,29 @@ Build android sdcard image for raspberrypi4b.
     Reboot in recovery mode to install the Google Apps.
 
    Download from https://konstakang.com/devices/rpi4/AOSP15
-   AOSP15-20241210-KonstaKANG-rpi4.zip
-   AOSP15-20241210-KonstaKANG-rpi4-ota.zip
-   unzip AOSP15-20241210-KonstaKANG-rpi4.zip
+   AOSP15-20250306-KonstaKANG-rpi4.zip
+   AOSP15-20250306-KonstaKANG-rpi4-ota.zip
+   unzip AOSP15-20250306-KonstaKANG-rpi4.zip
 
-   sudo dd if=./AOSP15-20241210-KonstaKANG-rpi4.img of=/dev/sda bs=4096 conv=notrunc,fsync
+   sudo dd if=./AOSP15-20250306-KonstaKANG-rpi4.img of=/dev/sda bs=4096 conv=notrunc,fsync
    Eject sdcard, plugin sdcard to rpi4b.
    After setting up android, turn on developer mode.
    Settings -> About tablet -> click build number 7 times
    Settings -> System -> Raspberry Pi settings -> ADB ( turn on ) 
    Shutdown android ( click F5 ).
    Download Google Play Store from https://sourceforge.net/projects/nikgapps/
-   wget https://sourceforge.net/projects/nikgapps/files/Releases/Android-15/12-Dec-2024/NikGapps-basic-arm64-15-20241212-signed.zip/download
-   mv download NikGapps-Basic-arm64-15-20241212-signed.zip
+   wget https://sourceforge.net/projects/nikgapps/files/Releases/Android-15/27-Jan-2025/NikGapps-basic-arm64-15-20250127-signed.zip/download
+   mv download NikGapps-Basic-arm64-15-20250127-signed.zip
    Plugin USB memory stick to host PC.
    sudo mount /dev/sda1 /mnt
-   cp ~/Downloads/AOSP15-20241210-KonstaKANG-rpi4-ota.zip /mnt
-   cp ~/Downloads/NikGapps-Basic-arm64-15-20241212-signed.zip /mnt
+   cp ~/Downloads/AOSP15-20250306-KonstaKANG-rpi4-ota.zip /mnt
+   cp ~/Downloads/NikGapps-Basic-arm64-15-20250127-signed.zip /mnt
    sync
    sudo umount /mnt
    Eject USB memory stick, and plug it to rpi4b.
    Boot to TWRP recovery: Settings -> System -> Raspberry Pi settings -> Reboot to recovery -> F5 ( shutdown ) -> power on.
    Install AOSP15-20241210-KonstaKANG-rpi4-ota.zip from your selected storage:
-   Install -> Select Storage -> USB -> OK -> AOSP15-20241210-KonstaKANG-rpi4-ota.zip -> swipe -> back -> Install NikGapps-Basic-arm64-15-20241212-signed.zip -> swipe -> Reboot -> system
+   Install -> Select Storage -> USB -> OK -> AOSP15-20250306-KonstaKANG-rpi4-ota.zip -> swipe -> back -> Install NikGapps-Basic-arm64-15-20250127-signed.zip -> swipe -> Reboot -> system
 
    Enable sound: Settings -> System -> Raspberry Pi settings -> Audio device (HDMI0).
 
@@ -51,10 +51,12 @@ Settings -> About tablet -> click build number 7 times
 Settings -> System -> Raspberry Pi settings -> ADB ( turn on )
 F5 -> Power off. Power on.
 
-adb devices -l
 adb connect 192.168.86.xxx:xxxxx
+adb tcpip 5555
+adb connect 192.168.86.xxx:5555
+adb devices -l   ( keep runing adb devices -l till only one connected )
+adb shell getprop service.adb.tcp.port  ( should return 5555 )
 adb root
-adb connect 192.168.86.xxx:xxxxx
 adb shell
 du -h /system
 mount -o rw,remount /
@@ -130,15 +132,16 @@ See https://github.com/raspberry-vanilla/android_local_manifest/tree/android-15.
 
 sudo apt-get install bc coreutils dosfstools e2fsprogs fdisk kpartx mtools ninja-build pkg-config python3-pip meson python3-mako python3-jinja2 python3-ply python3-jinja2 python3-yaml
 
-mkdir android15; cd android15;
+mkdir android15; cd android15; 
 repo init -u https://android.googlesource.com/platform/manifest -b android-15.0.0_r20 --depth=1
 curl -o .repo/local_manifests/manifest_brcm_rpi.xml -L https://raw.githubusercontent.com/raspberry-vanilla/android_local_manifest/android-15.0/manifest_brcm_rpi.xml --create-dirs
 curl -o .repo/local_manifests/remove_projects.xml -L https://raw.githubusercontent.com/raspberry-vanilla/android_local_manifest/android-15.0/remove_projects.xml
 repo sync
+repo sync -j1 --fail-fast
 . build/envsetup.sh
 lunch aosp_rpi4-bp1a-userdebug
 make bootimage systemimage vendorimage -j$(nproc)
 ./rpi4-mkimg.sh
 
-The result is in out/target/product/rpi4/RaspberryVanillaAOSP15-20250306-rpi4.img
-sudo dd if=./out/target/product/rpi4/RaspberryVanillaAOSP15-20250306-rpi4.img of=/dev/sda bs=4096 conv=notrunc,fsync
+The result is in out/target/product/rpi4/RaspberryVanillaAOSP15-20250314-rpi4.img
+sudo dd if=./out/target/product/rpi4/RaspberryVanillaAOSP15-20250314-rpi4.img of=/dev/sda bs=4096 conv=notrunc,fsync
