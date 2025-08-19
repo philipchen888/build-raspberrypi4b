@@ -15,4 +15,4 @@ w
 y
 EOF
 dd if=../uboot/out/boot.img of=${BOOT} bs=4096 seek=4096 conv=notrunc,fsync
-dd if=../rootfs-bookwormgpio/linaro-rootfs.img of=${BOOT} bs=4096 seek=135168 conv=notrunc,fsync
+dd if=../rootfs-bookworm/linaro-rootfs.img of=${BOOT} bs=4096 seek=135168 conv=notrunc,fsync

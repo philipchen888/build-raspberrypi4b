@@ -1,4 +1,3 @@
-export BOARD=rpi4b
 export LB_BOOTSTRAP_INCLUDE="apt-transport-https gnupg"
 export ARCH=arm64
 export CROSS_COMPILE=/usr/bin/aarch64-linux-gnu-
@@ -12,7 +11,7 @@ clean:
 cleanall:
 	sudo lb clean --purge
 	\rm -rf config .build rootfs local
-	\rm -rf linaro-rootfs.img linaro-basicrootfs.img
+	\rm -rf linaro-rootfs.img
 
 prebuild:
 	lb config \

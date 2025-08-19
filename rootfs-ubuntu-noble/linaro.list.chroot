@@ -97,7 +97,7 @@ vim
 vim-tiny
 wget
 whiptail
-#wireless-tools
+wireless-tools
 wpasupplicant
 xdg-user-dirs-gtk
 xfce4-power-manager-plugins

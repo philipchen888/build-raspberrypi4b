@@ -1,8 +1,9 @@
 Build ubuntu-uefi sdcard image for raspberrypi4b:
 
 cd ~/Downloads
-wget https://cdimage.ubuntu.com/noble/daily-live/current/noble-desktop-arm64.iso
-wget https://github.com/pftf/RPi4/releases/download/v1.40/RPi4_UEFI_Firmware_v1.40.zip
+wget https://cdimage.ubuntu.com/releases/plucky/release/ubuntu-25.04-desktop-arm64.iso
+wget https://cdimage.ubuntu.com/releases/noble/release/ubuntu-24.04.3-desktop-arm64.iso
+wget https://github.com/pftf/RPi4/releases/download/v1.42/RPi4_UEFI_Firmware_v1.42.zip
 
 cd ~/build-raspberrypi4b/ubuntu-uefi
 
@@ -12,7 +13,7 @@ sudo mkfs.vfat /dev/sda1
 sudo fdisk -l /dev/sda
 sudo mount -t vfat /dev/sda1 /mnt
 cd /mnt
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.40.zip
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip
 cd ~/build-raspberrypi4b/ubuntu-uefi
 sync
 sudo umount /mnt
@@ -24,7 +25,7 @@ sudo mkfs.vfat /dev/sda1
 sudo fdisk -l /dev/sda
 sudo mount -t vfat /dev/sda1 /mnt
 cd /mnt
-sudo 7z x ~/Downloads/noble-desktop-arm64.iso
+sudo 7z x ~/Downloads/ubuntu-25.04-desktop-arm64.iso
 cd ~/build-raspberrypi4b/ubuntu-uefi
 sync
 sudo umount /mnt
@@ -38,9 +39,12 @@ Eject USB2 SATA ssd from PC.
 
 ------------------------------------------------------------------------
 Install ubuntu from USB2 flash drive ubuntu iso to empty USB2 SATA ssd.
+NOTE: To minimize EMI interference, put USB2 sata ssd to rpi4b bottom USB2 socket,
+      Put keyboard mouse to rpi4b bottom USB3 socket with USB2 extention cable.
 ------------------------------------------------------------------------
 
-Plugin sdcard, USB2 flash drive and USB2 SATA ssd to rpi4b. Plugin ethernet cable to rpi4b. Power on rpi4b.
+Plugin sdcard, USB2 flash drive and USB2 SATA ssd and ethernet cable to rpi4b. Power on rpi4b.
+Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
 Select install
 Double click Install Ubuntu LTS icon.
 Erase disk and install Ubuntu.
@@ -51,39 +55,36 @@ Remove USB2 flash drive from rpi4b.
 Login:
 Username: linaro
 Password: linaro
-Disable power saving and screen saver.
+Disable power saving, auto suspend and screen saver.
+sudo apt install net-tools openssh-server pulseaudio-utils
+sudo ifconfig
 uname -a
 lsb_release -a
-sudo ifconfig
 sudo dpkg-reconfigure tzdata
 sudo dpkg-reconfigure locales
-sudo apt install net-tools openssh-server pulseaudio-utils
 date
-sudo apt update
-sudo apt upgrade
-sudo apt dist-upgrade
-sudo vi /etc/systemd/logind.conf ( change to follows:
-HandlePowerKey=ignore
-HandleRebootKey=ignore
-HandleSuspendKey=ignore
-HandleHibernateKey=ignore
-HandleLidSwitch=ignore
-)
+sudo apt update; sudo apt upgrade -y; sudo apt dist-upgrade -y;
 sync
+free
 sudo shutdown -h now
 
 Plugin USB2 sata ssd to PC.
+For ubuntu-plucky:
+cp ./packages/firmware-brcm80211_20250410-2_all.deb /media/$USER/*/home/linaro/
+For ubuntu-noble:
+cp ./packages/firmware-brcm80211_20240909-2_all.deb /media/$USER/*/home/linaro/
 sudo cp ./packages/brcmfmac43455-sdio.txt /media/$USER/*/lib/firmware/brcm/
 sudo cp ./packages/BCM4345C0.hcd /media/$USER/*/lib/firmware/brcm/
-sudo cp ./packages/firmware-brcm80211_20240909-2_all.deb /media/$USER/*/home/linaro/
+sudo cp ./packages/rtl* /media/$USER/*/lib/firmware/rtl_bt/
 sync
 Eject USB2 sata ssd from PC.
 
-Plugin USB2 sata ssd to rpi4b USB2 port. Plug ethernet cable to rpi4b. Power on rpi4b.
+Plugin USB2 sata ssd to rpi4b USB2 port. Power on rpi4b.
 uname -a
 lsb_release -a
-sudo dpkg -i firmware-brcm80211_20240909-2_all.deb
-sudo reboot
+sudo dpkg -i firmware-brcm80211_20250410-2_all.deb
+sync
+
 glxinfo | grep OpenGL
 date
 Check if Ubuntu is running UEFI mode:
@@ -93,25 +94,35 @@ echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg glmark2-es2-wayland pandoc vlc vlc-plugin-video-output
+sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg glmark2-es2-wayland pandoc vlc vlc-plugin-video-output rfkill
 
 speedtest-cli --secure
 
 glmark2-es2-wayland
 
-rpi4b sound, wifi and bluetooth are not supported in mainline kernel 6.8.0-52-generic.
+aplay -l
 
---------------------------------------------------------------------------
+sudo rfkill list
 
-Install vendor kernel 6.13.1-v8+
+mainline kernel 6.14.0-28-generic cannot support rpi4b sound, wifi and bluetooth.
+
+---------------------------------------------------------------
+Install vendor kernel 6.16.0-v8+
+---------------------------------------------------------------
 
 sudo apt install git cmake device-tree-compiler libfdt-dev build-essential libncurses-dev bison flex libssl-dev libelf-dev fakeroot
 
-git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.13.y
+git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.16.y
 vi ./linux/arch/arm64/configs/bcm2711_defconfig ( delete CONFIG_CMDLINE, change CONFIG_I2C_CHARDEV=m to CONFIG_I2C_CHARDEV=y )
 
 Install ovmerge from  https://github.com/raspberrypi/utils
-cd ./linux/arch/arm/boot/dts/broadcom
+git clone https://github.com/raspberrypi/utils.git
+cd utils
+cmake .
+make
+sudo make install
+which ovmerge
+cd ../linux/arch/arm/boot/dts/broadcom
 cp bcm2711-rpi-4-b.dts bcm2711-rpi-4-b.dts.org
 ovmerge -c -p bcm2711-rpi-4-b.dts,i2c1=on,i2c_arm=on,spi=on,audio=on ../overlays/uart2-overlay.dts ../overlays/vc4-kms-v3d-pi4-overlay.dts,cma-512 ../overlays/pwm-2chan-overlay.dts,pin=12,func=4,pin2=13,func2=4 > custom.dts
 cp custom.dts bcm2711-rpi-4-b.dts
@@ -125,6 +136,7 @@ sudo make ARCH=arm64 install             ( ignore errors )
 
 cd ../
 ls -la /boot
+df .
 sudo e2label /dev/sda2 rootfs
 sudo blkid /dev/sda2   ( look for LABEL and UUID )
 
@@ -133,12 +145,12 @@ sudo vi /etc/grub.d/40_custom_uuid ( add
 exec tail -n +3 $0
 
 menuentry "Boot from UUID" {
-    search --no-floppy --fs-uuid --set=root --hint='usb0,gpt2' --hint='mmcblk0,gpt2' --hint='mmcblk1,gpt2' 5cdc9987-a881-4005-981d-21dfb1d58184
-    echo    'Loading Linux 6.13.1-v8+ ...'
-    linux /boot/vmlinuz-6.13.1-v8+ root=LABEL=rootfs rootwait rw
+    search --no-floppy --fs-uuid --set=root --hint='usb0,gpt2' --hint='mmcblk0,gpt2' --hint='mmcblk1,gpt2' 8084721a-99c1-410a-9d04-0578ea5b2dc8
+    echo    'Loading Linux 6.16.0-v8+ ...'
+    linux /boot/vmlinux-6.16.0-v8+ root=LABEL=rootfs rootwait rw
     echo    'Loading initial ramdisk ...'
-    initrd /boot/initrd.img-6.13.1-v8+
-    devicetree /boot/dtbs/6.13.1-v8+/broadcom/bcm2711-rpi-4-b.dtb
+    initrd /boot/initrd.img-6.16.0-v8+
+    devicetree /boot/dtbs/6.16.0-v8+/broadcom/bcm2711-rpi-4-b.dtb
 }
 )
 
@@ -148,24 +160,14 @@ sudo chmod +x /etc/grub.d/40_custom_uuid
 
 sudo vi /etc/default/grub ( change GRUB_DEFAULT=0 to GRUB_DEFAULT="Boot from UUID" )
 sudo update-grub  ( generate grub.cfg )
+cd
 sync
-sudo shutdown -h now
+sudo reboot
 
-Plugin sdcard to PC.
-sudo mount /dev/sda1 /mnt
-sudo vi /mnt/config.txt ( delete last 4 lines, add
-max_framebuffers=2
-enable_uart=1
-arm_freq=2000
-)
-sync
-sudo umount /mnt
-Eject sdcard from PC.
-
-Plugin sdcard to rpi4b. Power on rpi4b.
+Setup wifi. Unplug ethernet cable from rpi4b.
+sudo ifconfig
 uname -a
 lsb_release -a
-Setup wifi, remove ethernet cable from rpi4b.
 sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
 Check if Ubuntu is running UEFI mode:
 ls /sys/firmware/efi
@@ -189,84 +191,13 @@ git clone https://github.com/yt-dlp/yt-dlp.git
 cd yt-dlp
 make
 cd ../
-~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
+~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
 mpv --hwdec=v4l2m2m-copy --log-file=mpv.log swan.mp4
 grep Using mpv.log
 cvlc --gl=wgl --glconv=any swan.mp4
 
+Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
 sudo rfkill list
-hciconfig hci0
-hcitool dev
-hciconfig -a
-
-----------------------------------------------------------------------
-
-Downloads ubuntu image to sdcard:
-
-Plugin sdcard to PC.
-sudo rpi-imager
-choose device -> pi 4 -> choose os -> other general-purpose os -> ubuntu -> ubuntu 20.04.1 -> choose storage -> next -> yes
-Eject sdcard from PC.
-
-Plugin sdcard to rpi4b.
-
-Login:
-Username: linaro
-Password: linaro
-Setup wifi. Disable power saving and screen saver.
-uname -a
-lsb_release -a
-sudo ifconfig
-sudo dpkg-reconfigure tzdata
-sudo dpkg-reconfigure locales
-date
-sudo apt update
-sudo apt upgrade
-sudo apt dist-upgrade
-sudo vi /etc/systemd/logind.conf ( change to follows:
-HandlePowerKey=ignore
-HandleRebootKey=ignore
-HandleSuspendKey=ignore
-HandleHibernateKey=ignore
-HandleLidSwitch=ignore
-)
-sync
-sudo shutdown -h now
-
-Power off, power on
-sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
-glxinfo | grep OpenGL
-date
-Check if Ubuntu is running UEFI mode:
-ls /sys/firmware/efi
-Check display mode: ( wayland or x11 )
-echo $XDG_SESSION_TYPE
-Check audio driver: ( pulseaudio or pipewire )
-pactl info
-
-sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg glmark2-es2-wayland pandoc vlc vlc-plugin-video-output
-
-speedtest-cli --secure
-
-glmark2-es2-wayland
-
-aplay -l
-pavucontrol  ( select hdmi as default )
-
-sudo add-apt-repository ppa:mozillateam/ppa
-sudo apt update
-sudo apt upgrade
-sudo apt install firefox-esr
-firefox -> youtube.com -> search YmDNhi07_Ho
-
-git clone https://github.com/yt-dlp/yt-dlp.git
-cd yt-dlp
-make
-cd ../
-~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4
-cvlc --gl=wgl --glconv=any swan.mp4
-
-sudo rfkill list
-hciconfig hci0
+hciconfig hci1
 hcitool dev
 hciconfig -a

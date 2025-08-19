@@ -42,7 +42,11 @@ sudo mkdir -p $TARGET_ROOTFS_DIR/packages
 sudo cp -rf ../packages/$ARCH/* $TARGET_ROOTFS_DIR/packages
 sudo cp -rf ../kernel/linux/tmp/boot/* $TARGET_ROOTFS_DIR/boot
 sudo mkdir -p $TARGET_ROOTFS_DIR/boot/firmware
-sudo cp ../kernel/patches/40_custom_uuid $TARGET_ROOTFS_DIR/boot
+export KERNEL_VERSION=$(ls $TARGET_ROOTFS_DIR/boot/vmlinuz-* 2>/dev/null | sed 's|.*/vmlinuz-||' | sort -V | tail -n 1)
+echo $KERNEL_VERSION
+sudo sed -e "s/6.16.0-rc7-v8-16k+/$KERNEL_VERSION/g" < ../kernel/patches/40_custom_uuid | sudo tee $TARGET_ROOTFS_DIR/boot/40_custom_uuid > /dev/null
+cat $TARGET_ROOTFS_DIR/boot/40_custom_uuid
+wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | gpg --dearmor | sudo tee $TARGET_ROOTFS_DIR/etc/apt/trusted.gpg.d/raspberrypi4-keys.gpg > /dev/null
 
 # overlay folder
 sudo cp -rf ../overlay/* $TARGET_ROOTFS_DIR/
@@ -64,13 +68,11 @@ rm -rf /etc/resolv.conf
 echo -e "nameserver 8.8.8.8\nnameserver 8.8.4.4" > /etc/resolv.conf
 resolvconf -u
 
-# Install mesa 23
-wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | apt-key add -
-mv /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
+# Install mesa 24
 echo -e "deb http://archive.raspberrypi.org/debian bookworm main" >> /etc/apt/sources.list
 apt-get update
 apt-get upgrade -y
-apt-get install -y build-essential git wget grub-efi-arm64 e2fsprogs zstd
+apt-get install -y build-essential git wget v4l-utils grub-efi-arm64 e2fsprogs zstd initramfs-tools mesa-vulkan-drivers gdm3
 
 ls -la /boot/firmware
 rm -rf /boot/firmware
@@ -106,21 +108,28 @@ update-grub
 chmod o+x /usr/lib/dbus-1.0/dbus-daemon-launch-helper
 chmod +x /etc/rc.local
 
-dpkg -i /packages/rpiwifi/firmware-brcm80211_20240909-2_all.deb
 cp /packages/rpiwifi/brcmfmac43455-sdio.txt /lib/firmware/brcm/
+cp /packages/rpiwifi/BCM4345C0.hcd /lib/firmware/brcm/
+cp /packages/rtlbt/rtl8761bu* /lib/firmware/rtl_bt/
 apt-get install -f -y
 
 # Turn off speech dispatcher
 apt remove orca -y
 
+# Create the linaro user account
+/usr/sbin/useradd -d /home/linaro -G adm,sudo,video -m -N -u 29999 linaro
+echo -e "linaro:linaro" | chpasswd
+echo -e "linaro-alip" | tee /etc/hostname
+
 systemctl enable rc-local
 systemctl enable resize-helper
 chsh -s /bin/bash linaro
-update-initramfs -c -k 6.13.1-v8+
+update-initramfs -c -k $KERNEL_VERSION
 sync
 
 #---------------Clean--------------
 rm -rf /var/lib/apt/lists/*
+rm -rf /boot/firmware/*
 sync
 EOF
 

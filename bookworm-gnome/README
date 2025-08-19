@@ -4,7 +4,7 @@ Input files: ../rootfs-bookworm/linaro-esp.img
              ../rootfs-bookworm/linaro-rootfs.img
 
 cd ~/Downloads
-wget https://github.com/pftf/RPi4/releases/download/v1.40/RPi4_UEFI_Firmware_v1.40.zip
+wget https://github.com/pftf/RPi4/releases/download/v1.42/RPi4_UEFI_Firmware_v1.42.zip
 
 cd ~/build-raspberrypi4b/bookworm-gnome
 
@@ -12,16 +12,11 @@ Plugin sdcard/USB2-SATA-SSD to PC.
 sudo ./mksdcardimg.sh
 sudo mount /dev/sda1 /mnt
 cd /mnt
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.40.zip
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip
 cd ~/build-raspberrypi4b/bookworm-gnome
-sudo vi /mnt/config.txt ( delete last 4 lines, add
-max_framebuffers=2
-enable_uart=1
-arm_freq=2000
-)
 sync
 sudo umount /mnt
-Eject sdcard/USB2-SATA-SSD from PC.
+Eject sdcard/USB2 SATA ssd from PC.
 
 Plugin sdcard/USB2-SATA-SSD to rpi4b.
 Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
@@ -38,8 +33,9 @@ date
 sudo apt update
 sudo apt upgrade
 sync
+free
 sudo shutdown -h now
-Power off, power on
+Power off rpi4b. Power on rpi4b.
 sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
 glxinfo | grep OpenGL
 date
@@ -50,7 +46,7 @@ echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc firefox-esr vlc vlc-plugin-video-output
+sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc firefox-esr vlc vlc-plugin-video-output rfkill
 
 speedtest-cli --secure
 
@@ -65,12 +61,13 @@ git clone https://github.com/yt-dlp/yt-dlp.git
 cd yt-dlp
 make
 cd ../
-~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
-mpv --hwdec=auto-copy --log-file=mpv.log swan.mp4
+~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
+mpv --hwdec=v4l2m2m-copy --log-file=mpv.log swan.mp4
 grep Using mpv.log
 cvlc --gl=wgl --glconv=any swan.mp4
 
+Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
 sudo rfkill list
-hciconfig hci0
+hciconfig hci1
 hcitool dev
 hciconfig -a

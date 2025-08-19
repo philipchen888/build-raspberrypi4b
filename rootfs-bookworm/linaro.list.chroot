@@ -38,7 +38,7 @@ hardinfo
 hostapd
 idlestat
 ifupdown
-initramfs-tools
+#initramfs-tools
 initscripts
 input-utils
 iotop
@@ -96,7 +96,7 @@ vim
 vim-tiny
 wget
 whiptail
-#wireless-tools
+wireless-tools
 wpasupplicant
 xinit
 xserver-xorg

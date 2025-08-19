@@ -4,7 +4,7 @@ Input files: ../rootfs-ubuntu-noble/linaro-esp.img
              ../rootfs-ubuntu-noble/linaro-rootfs.img
 
 cd ~/Downloads
-wget https://github.com/pftf/RPi4/releases/download/v1.40/RPi4_UEFI_Firmware_v1.40.zip
+wget https://github.com/pftf/RPi4/releases/download/v1.42/RPi4_UEFI_Firmware_v1.42.zip
 
 cd ~/build-raspberrypi4b/ubuntu-noble
 
@@ -12,13 +12,8 @@ Plugin sdcard/USB2-SATA-SSD to PC.
 sudo ./mksdcardimg.sh
 sudo mount /dev/sda1 /mnt
 cd /mnt
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.40.zip
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip
 cd ~/build-raspberrypi4b/ubuntu-noble
-sudo vi /mnt/config.txt ( delete last 4 lines, add
-max_framebuffers=2
-enable_uart=1
-arm_freq=2000
-)
 sync
 sudo umount /mnt
 Eject sdcard/USB2-SATA-SSD from PC.
@@ -38,14 +33,8 @@ date
 sudo apt update
 sudo apt upgrade
 sudo apt dist-upgrade
-sudo vi /etc/systemd/logind.conf ( change to follows:
-HandlePowerKey=ignore
-HandleRebootKey=ignore
-HandleSuspendKey=ignore
-HandleHibernateKey=ignore
-HandleLidSwitch=ignore
-)
 sync
+free
 sudo shutdown -h now
 Power off, power on
 sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
@@ -77,12 +66,13 @@ git clone https://github.com/yt-dlp/yt-dlp.git
 cd yt-dlp
 make
 cd ../
-~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
+~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
 mpv --hwdec=v4l2m2m-copy --log-file=mpv.log swan.mp4
 grep Using mpv.log
 cvlc --gl=wgl --glconv=any swan.mp4
 
+Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
 sudo rfkill list
-hciconfig hci0
+hciconfig hci1
 hcitool dev
 hciconfig -a

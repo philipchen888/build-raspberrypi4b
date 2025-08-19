@@ -28,18 +28,18 @@ The following 8 pn532nfc tests are included:
 8. ndeftoclassic  ( change mifareclassic_ndef to mifareclassic )
 
 Input files: ../uboot/out/boot.img   bootusb.img
-             ../rootfs-bookwormgpio/linaro-rootfs.img
+             ../rootfs-bookworm/linaro-rootfs.img
 
-Plugin sdcard/USB2-SATA-SSD to PC.
-sudo ./mksdcardimg.sh    ( sudo ./mkusbimg.sh for USB2-SATA-SSD )
+Plugin sdcard to PC.
+sudo ./mksdcardimg.sh
 sudo mount /dev/sda2 /mnt
 cp ./gpiotest/* /mnt/home/linaro
 cp ./pn532nfc/* /mnt/home/linaro
 sync
 sudo umount /mnt
-Eject sdcard/USB2-SATA-SSD from PC.
+Eject sdcard from PC.
 
-Plugin sdcard/USB2-SATA-SSD to rpi4b.
+Plugin sdcard to rpi4b.
 
 Login:
 Username: linaro

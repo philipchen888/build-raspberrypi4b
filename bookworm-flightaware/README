@@ -6,7 +6,7 @@ Parts required:
 3. ADS-B 1090MHz PRO USB Stick.
 
 Input files: ../uboot/out/boot.img
-             ../rootfs-bookwormgpio/linaro-rootfs.img
+             ../rootfs-bookworm/linaro-rootfs.img
 
 Plugin sdcard to PC.
 sudo ./mksdcardimg.sh
