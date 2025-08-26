@@ -11,11 +11,7 @@ cd ~/build-raspberrypi4b/ubuntu-noble
 Plugin sdcard/USB2-SATA-SSD to PC.
 sudo ./mksdcardimg.sh
 sudo mount /dev/sda1 /mnt
-cd /mnt
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip
-cd ~/build-raspberrypi4b/ubuntu-noble
-sync
-sudo umount /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip -o/mnt && sync && sudo umount /mnt
 Eject sdcard/USB2-SATA-SSD from PC.
 
 Plugin sdcard/USB2-SATA-SSD to rpi4b.
@@ -57,8 +53,7 @@ aplay -l
 pavucontrol  ( select hdmi as default )
 
 sudo add-apt-repository ppa:mozillateam/ppa
-sudo apt update
-sudo apt upgrade
+sudo apt update; sudo apt upgrade -y;
 sudo apt install firefox-esr
 firefox -> youtube.com -> search YmDNhi07_Ho
 
@@ -73,6 +68,6 @@ cvlc --gl=wgl --glconv=any swan.mp4
 
 Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
 sudo rfkill list
-hciconfig hci1
+hciconfig hci0
 hcitool dev
 hciconfig -a

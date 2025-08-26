@@ -11,11 +11,7 @@ cd ~/build-raspberrypi4b/trixie-gnome
 Plugin sdcard/USB2-SATA-SSD to PC.
 sudo ./mksdcardimg.sh
 sudo mount /dev/sda1 /mnt
-cd /mnt
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip
-cd ~/build-raspberrypi4b/trixie-gnome
-sync
-sudo umount /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip -o/mnt && sync && sudo umount /mnt
 Eject sdcard/USB2 SATA ssd from PC.
 
 Plugin sdcard/USB2-SATA-SSD to rpi4b.
@@ -66,10 +62,11 @@ cd ../
 ~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
 mpv --hwdec=v4l2m2m-copy --log-file=mpv.log swan.mp4
 grep Using mpv.log
+ffplay swan.mp4
 cvlc --gl=wgl --glconv=any swan.mp4
 
 Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
 sudo rfkill list
-hciconfig hci1
+hciconfig hci0
 hcitool dev
 hciconfig -a
