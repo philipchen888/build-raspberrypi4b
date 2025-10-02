@@ -5,19 +5,24 @@ Parts required:
 2. Band-Pass SMA Filter.
 3. ADS-B 1090MHz PRO USB Stick.
 
-Input files: ../uboot/out/boot.img
+Input files: ../rootfs-bookworm/linaro-esp.img
              ../rootfs-bookworm/linaro-rootfs.img
+
+cd ~/Downloads
+wget https://github.com/pftf/RPi4/releases/download/v1.42/RPi4_UEFI_Firmware_v1.42.zip
+
+cd ~/build-raspberrypi4b/bookworm-flightaware
 
 Plugin sdcard to PC.
 sudo ./mksdcardimg.sh
+sudo mount /dev/sda1 /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip -o/mnt && sync && sudo umount /mnt
 sudo mount /dev/sda2 /mnt
-cp ./flightaware/* /mnt/home/linaro
-sync
-sudo umount /mnt
+cp ./flightaware/* /mnt/home/linaro && sync && sudo umount /mnt
 Eject sdcard from PC.
 
 Plugin sdcard to rpi4b.
-
+Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
 Login:
 Username: linaro
 Password: linaro
@@ -31,10 +36,12 @@ date
 sudo apt update
 sudo apt upgrade
 sync
-sudo shutdown -h now
-Power off, power on
+free
+sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
 glxinfo | grep OpenGL
 date
+Check if Debian is running UEFI mode:
+ls /sys/firmware/efi
 Check display mode: ( wayland or x11 )
 echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
@@ -67,7 +74,7 @@ When everything is ok and ready to capture data that you sent to flightaware:
 
 nc 127.0.0.1 30003 | egrep --line-buffered 'MSG,1,|MSG,3,|MSG,5,' >> flight_tracks.csv
 
-After a few minutes, CTRL-C to stop caturing.
+After a few minutes, CTRL-C to stop caturing
 vi flight_tracks.csv
 It has aircraft's info, date, time, GPS position etc.
 

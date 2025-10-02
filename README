@@ -40,76 +40,54 @@ Steps to build raspberrypi4b sdcard image:
    Plugin sdcard to rpi4b and boot. When monitor display green it's done. Power off rpi4b.
 
 3. cd ~/build-raspberrypi4b/kernel ( Compile vendor's kernel )
-   git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.16.y
+   git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.17.y
    vi ./linux/arch/arm64/configs/bcm2711_defconfig (  delete CONFIG_CMDLINE, change CONFIG_I2C_CHARDEV=m to CONFIG_I2C_CHARDEV=y )
-   \rm -rf out; mkdir out; 
 
    make kernel
-   The result is in ./out/boot.img
 
-4. cd ~/build-raspberrypi4b/linux  ( Compile mainline kernel )
-   wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.13.tar.gz
-   tar -xzf linux-6.13.tar.gz
-   mv linux-6.13 linux
-   \rm -rf out; mkdir out;
-
-   make kernel
-   The result is in ./out/boot.img
-
-5. cd ~/build-raspberrypi4b/uboot
-   git clone --depth=1 --branch=1.20230106 https://github.com/raspberrypi/firmware.git
-   git clone --depth=1 --branch=v2023.01 https://source.denx.de/u-boot/u-boot.git
-
-   \rm -rf out; mkdir out;
-   make u-boot
-
-   The result is in ./u-boot/u-boot.bin
-
-   make boot          ( The results are in ./out/boot.img  bootusb.img)
-
-6. cd ~/build-raspberrypi4b/rootfs-bookworm  ( Compile debian bookworm rootfs )
+4. cd ~/build-raspberrypi4b/rootfs-bookworm  ( Compile debian bookworm rootfs )
    make rootfs
    The results are in ./linaro-rootfs.img  linaro-esp.img
    make clean
 
-7. cd ~/build-raspberrypi4b/rootfs-trixie  ( Compile debian trixie rootfs )
+5. cd ~/build-raspberrypi4b/rootfs-trixie  ( Compile debian trixie rootfs )
    make rootfs
    The results are in ./linaro-rootfs.img  linaro-esp.img
    make clean
 
-8. cd ~/build-raspberrypi4b/rootfs-ubuntu-noble  ( Compile ubuntu-noble rootfs )
+6. cd ~/build-raspberrypi4b/rootfs-ubuntu-noble  ( Compile ubuntu-noble rootfs )
    make rootfs
    The results are in ./linaro-rootfs.img  linaro-esp.img
    make clean
 
-9. cd ~/build-raspberrypi4b/rootfs-ubuntu-plucky  ( Compile ubuntu-plucky rootfs )
+7. cd ~/build-raspberrypi4b/rootfs-ubuntu-plucky  ( Compile ubuntu-plucky rootfs )
    make rootfs
    The results are in ./linaro-rootfs.img  linaro-esp.img
    make clean
 
-10. cd ~/build-raspberrypi4b/bookworm-gnome  ( Build debian bookworm gnome-desktop image )
-    Plugin sdcard/USB2-SATA-SSD to PC.
-    sudo ./mksdcardimg.sh
-    sudo mount /dev/sda1 /mnt
-    cd /mnt
-    sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip
-    cd ~/build-raspberrypi4b/bookworm-gnome
-    sync
-    sudo umount /mnt
-    Eject sdcard/USB2-SATA-SSD from PC.
+8. cd ~/build-raspberrypi4b/bookworm-gnome  ( Build debian bookworm gnome-desktop image )
+   Plugin sdcard/USB2-SATA-SSD to PC.
+   sudo ./mksdcardimg.sh
+   sudo mount /dev/sda1 /mnt
+   cd /mnt
+   sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip
+   cd ~/build-raspberrypi4b/bookworm-gnome
+   sync
+   sudo umount /mnt
+   Eject sdcard/USB2-SATA-SSD from PC.
 
-11. cd ~/build-raspberrypi4b/trixie-gnome  ( Build debian trixie gnome-desktop image )
-    Plugin sdcard/USB2-SATA-SSD to PC.
-    sudo ./mksdcardimg.sh
-    sudo mount /dev/sda1 /mnt
-    cd /mnt
-    sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip
-    cd ~/build-raspberrypi4b/trixie-gnome
-    sync
-    sudo umount /mnt
-    Eject sdcard/USB2-SATA-SSD from PC.
+9. cd ~/build-raspberrypi4b/trixie-gnome  ( Build debian trixie gnome-desktop image )
+   Plugin sdcard/USB2-SATA-SSD to PC.
+   sudo ./mksdcardimg.sh
+   sudo mount /dev/sda1 /mnt
+   cd /mnt
+   sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.42.zip
+   cd ~/build-raspberrypi4b/trixie-gnome
+   sync
+   sudo umount /mnt
+   Eject sdcard/USB2-SATA-SSD from PC.
 
-12. cd ~/build-raspberrypi4b/ubuntu-noble  ( Build ubuntu-noble image )
+10. cd ~/build-raspberrypi4b/ubuntu-noble  ( Build ubuntu-noble image )
     Plugin sdcard/USB2-SATA-SSD to PC.
     sudo ./mksdcardimg.sh
     sudo mount /dev/sda1 /mnt
@@ -120,7 +98,7 @@ Steps to build raspberrypi4b sdcard image:
     sudo umount /mnt
     Eject sdcard/USB2-SATA-SSD from PC.
 
-13. cd ~/build-raspberrypi4b/ubuntu-plucky  ( Build ubuntu-plucky image )
+11. cd ~/build-raspberrypi4b/ubuntu-plucky  ( Build ubuntu-plucky image )
     Plugin sdcard/USB2-SATA-SSD to PC.
     sudo ./mksdcardimg.sh
     sudo mount /dev/sda1 /mnt
@@ -131,22 +109,22 @@ Steps to build raspberrypi4b sdcard image:
     sudo umount /mnt
     Eject sdcard/USB2-SATA-SSD from PC.
 
-14. cd ~/build-raspberrypi4b/yocto           ( Build yocto image )
+12. cd ~/build-raspberrypi4b/yocto           ( Build yocto image )
 
-15. cd ~/build-raspberrypi4b/buildroot       ( Build buildroot image )
+13. cd ~/build-raspberrypi4b/buildroot       ( Build buildroot image )
 
-16. cd ~/build-raspberrypi4b/android         ( Build android image )
+14. cd ~/build-raspberrypi4b/android         ( Build android image )
 
-17. cd ~/build-raspberrypi4b/bookworm-gpio   ( gpio and pn532nfc tests in bookworm )
+15. cd ~/build-raspberrypi4b/bookworm-gpio   ( gpio and pn532nfc tests in bookworm )
 
-18. cd ~/build-raspberrypi4b/bookworm-flightaware  ( flightaware in bookworm ) 
+16. cd ~/build-raspberrypi4b/bookworm-flightaware  ( flightaware in bookworm ) 
 
-19. cd ~/build-raspberrypi4b/baremetal-gpio  ( gpio test in baremetal )
+17. cd ~/build-raspberrypi4b/baremetal-gpio  ( gpio test in baremetal )
 
-20. cd ~/build-raspberrypi4b/bookworm-uefi   ( Build bookworm-uefi image )
+18. cd ~/build-raspberrypi4b/bookworm-uefi   ( Build bookworm-uefi image )
 
-21. cd ~/build-raspberrypi4b/trixie-uefi     ( Build trixie-uefi image )
+19. cd ~/build-raspberrypi4b/trixie-uefi     ( Build trixie-uefi image )
 
-22. cd ~/build-raspberrypi4b/fedora          ( Build fedora image )
+20. cd ~/build-raspberrypi4b/fedora          ( Build fedora image )
 
-23. cd ~/build-raspberrypi4b/ubuntu-uefi     ( Build ubuntu-uefi image )
+21. cd ~/build-raspberrypi4b/ubuntu-uefi     ( Build ubuntu-uefi image )

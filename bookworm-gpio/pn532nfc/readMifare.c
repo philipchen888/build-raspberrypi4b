@@ -67,7 +67,7 @@ void loop(void) {
   // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
   printf("wait for a tag\n");
   // wait until a tag is present
-  while (!readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength, 200, false)) { }
+  while (!readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength, 200, false)) { usleep( 1000 ); }
 
   success = readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength, 200, false);
   
@@ -132,7 +132,7 @@ void loop(void) {
               printf("\n");
 		  
               // Wait a bit before reading the card again
-              delay(100);
+              usleep( 100000 );
             }
             else
             {
@@ -168,7 +168,7 @@ void loop(void) {
         printf("\n");
 		
         // Wait a bit before reading the card again
-        delay(100);
+        usleep( 100000 );
       }
       else
       {

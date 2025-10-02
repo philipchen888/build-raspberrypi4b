@@ -45,7 +45,7 @@ int uart_test( void ) {
     int fd;
     speed_t speed;
  
-    fd = open("/dev/ttyAMA1", O_RDWR | O_NOCTTY );
+    fd = open("/dev/ttyAMA2", O_RDWR | O_NOCTTY );
     fcntl(fd, F_SETFL, 0);
     tcgetattr(fd, &tty);
 

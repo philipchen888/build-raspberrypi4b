@@ -1,12 +1,14 @@
 
 #include "pn532_spi.h"
 
-uint8_t command;
-static int myFd;
-
 #define STATUS_READ 2
 #define DATA_WRITE 1
 #define DATA_READ 3
+
+uint8_t command;
+static int spi;
+
+struct spi_ioc_transfer xfer;
 
 uint8_t BitReverseTable[256] =
 {
@@ -44,26 +46,56 @@ uint8_t BitReverseTable[256] =
 0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff
 };
 
-void spiSetup( int speed )
+int spiSetup( void )
 {
-  if ((myFd = wiringPiSPISetup (SPI_CHAN, speed)) < 0)
-  {
-     fprintf (stderr, "Can't open the SPI bus: %s\n", strerror (errno)) ;
-     exit (EXIT_FAILURE) ;
-  }
+    uint8_t mode = 0;
+    uint32_t speed = 1000000;
+    uint8_t bits = 8;
+
+    if ((spi = open( "/dev/spidev0.0", O_RDWR )) < 0) {
+        printf("Failed to open the bus.");
+        exit( 1 );
+    }
+    if (ioctl( spi, SPI_IOC_WR_MODE, &mode )<0) {
+        printf("can't set spi mode");
+        return 1;
+    }
+    if (ioctl( spi, SPI_IOC_WR_BITS_PER_WORD, &bits )<0) {
+        printf("can't set bits per word");
+        return 1;
+    }
+    if (ioctl( spi, SPI_IOC_WR_MAX_SPEED_HZ, &speed )<0) {
+        printf("can't set max speed hz");
+        return 1;
+    }
+
+    xfer.cs_change = 0;
+    xfer.delay_usecs = 0;          //delay in us
+    xfer.speed_hz = 1000000;       //speed
+    xfer.bits_per_word = 8;        // bites per word 8
+    return 0;
 }
 
 void spi_write( unsigned char *dout, int len )
 {
+    uint8_t buf[len];
+    int status;
     int i;
 
     for ( i = 0; i < len; i++ )
-        dout[i] = BitReverseTable[ dout[i] ];
-    delay( 0.1 );
-    wiringPiSPIDataRW (SPI_CHAN, dout, len);
-    for ( i = 0; i < len; i++ )
-        dout[i] = BitReverseTable[ dout[i] ];
-    delay( 0.1 );
+        buf[i] = BitReverseTable[ dout[i] ];
+    xfer.tx_buf = (unsigned long )buf;
+    xfer.rx_buf = (unsigned long )buf;
+    xfer.len = sizeof buf;
+    usleep(100);
+    status = ioctl( spi, SPI_IOC_MESSAGE(1), &xfer );
+    if ( status < 0 ) {
+        printf("SPI_IOC_MESSAGE");
+    }
+    for ( i = 0; i < len; i++ ) {
+        dout[i] = BitReverseTable[ buf[i] ];
+    }
+    usleep(100);
 }
 
 void begin()
@@ -72,8 +104,7 @@ void begin()
     uint8_t packet[256];
 
     command = 0;
-    wiringPiSetup();
-    spiSetup ( 1000000 );
+    spiSetup();
     for ( i = 0; i < 256; i++ ) {
         packet[ i ] = 0x0;
     }
@@ -88,7 +119,7 @@ int8_t writeCommand(const uint8_t *header, uint8_t hlen, const uint8_t *body, ui
     int timeout = PN532_ACK_WAIT_TIME;
     while (!isReady())
     {
-        delay( 1 );
+        usleep( 1000 );
         timeout--;
         if (0 == timeout)
         {
@@ -118,7 +149,7 @@ int16_t readResponse(uint8_t buf[], uint8_t len, uint16_t timeout)
 
     while (!isReady())
     {
-        delay(1);
+        usleep( 1000 );
         time++;
         if (time > timeout)
         {

@@ -1,9 +1,0 @@
-Compile mainline kernel:
-
-wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.13.tar.gz
-tar -xzf linux-6.13.tar.gz
-mv linux-6.13 linux
-\rm -rf out; mkdir out;
-
-make kernel
-The result is in ./out/boot.img

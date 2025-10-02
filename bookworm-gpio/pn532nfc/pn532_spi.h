@@ -4,20 +4,25 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdbool.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/types.h>
+#include <linux/spi/spidev.h>
 
-#include <wiringPi.h>
-#include <wiringPiSPI.h>
+#ifndef CONSUMER
+#define CONSUMER   "Consumer"
+#endif
 
 #define TRUE    (1==1)
 #define FALSE   (!TRUE)
-
-#define SPI_CHAN    0
-#define _ss         5
 
 #define PN532_PREAMBLE                (0x00)
 #define PN532_STARTCODE1              (0x00)
@@ -34,11 +39,9 @@
 #define PN532_INVALID_FRAME           (-3)
 #define PN532_NO_SPACE                (-4)
 
-void spiSetup( int speed );
+int spiSetup( void );
 void spi_write( unsigned char *dout, int len );
 void begin( void );
-void wakeup( void );
-void spi_write( unsigned char *dout, int len );
 int8_t writeCommand(const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen);
 int16_t readResponse(uint8_t buf[], uint8_t len, uint16_t timeout);
 bool isReady( void );
