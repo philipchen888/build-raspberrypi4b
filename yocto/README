@@ -13,7 +13,9 @@ Build yocto sdcard image for raspberrypi4b:
 
    cd poky; source oe-init-build-env;
    bitbake -s
-   bitbake -c cleansstate core-image-weston
+   bitbake -c cleansstate u-boot linux-raspberrypi core-image-weston
+   bitbake -k u-boot
+   bitbake -k linux-raspberrypi
    bitbake -k core-image-weston
 
    The result is in ./tmp/deploy/images/raspberrypi4-64/core-image-weston-raspberrypi4-64.rootfs.wic.bz2
@@ -36,16 +38,8 @@ Build yocto sdcard image for raspberrypi4b:
    sudo umount /mnt
 
    sudo mount /dev/sda2 /mnt
-   sudo blkid /dev/sda2
-   sudo blkid /dev/sda1
-   sudo cp ~/build-raspberrypi4b/kernel/firmware/fstab /mnt/etc/
-   sudo vi /mnt/etc/fstab ( change UUID )
-   sudo mkdir -p /mnt/boot/firmware
-   sudo vi /mnt/etc/network/interfaces ( delete everything after iface lo inet loopback, add
-   auto eth0
-   iface eth0 inet dhcp
-   )
-   sudo vi /mnt/etc/xdg/weston/weston.ini ( add
+   sudo vi /mnt/etc/network/interfaces ( delete everything after iface lo inet loopback )
+   sudo vi /mnt/etc/xdg/weston/weston.ini ( delete everything, add
    [core]
    xwayland=true
    idle-time=0
@@ -64,16 +58,16 @@ Build yocto sdcard image for raspberrypi4b:
 
    \rm -rf ./tmp/work
 
-Plugin sdcard to rpi4b. Plugin ethernet cable to rpi4b. Power on rpi4b.
+Plugin sdcard to rpi4b.
 
 login: root
 password: none
 passwd
-sudo ifconfig
+nmcli dev wifi connect "SSID" password "PASSWORD"
+ifconfig
 uname -a
 adduser linaro
-usermod -aG sudo linaro
-sudo visudo /etc/sudoers ( add linaro ALL=(ALL:ALL) ALL )
+usermod -aG adm,sudo,video linaro
 sync
 reboot
 ssh root@192.168.86.250
