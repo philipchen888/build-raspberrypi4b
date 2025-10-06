@@ -70,6 +70,7 @@ adduser linaro
 usermod -aG adm,sudo,video linaro
 sync
 reboot
+
 ssh root@192.168.86.250
 
 \rm /etc/localtime
@@ -84,7 +85,7 @@ glmark2-es2-wayland
 
 aplay /home/linaro/song.wav
 mpv --no-video /home/linaro/song.mp3
-mpv /home/linaro/video.mp4
+mpv --gpu-context=wayland --fullscreen /home/linaro/swan.mp4
 
 hciconfig hci0
 hciconfig -a
