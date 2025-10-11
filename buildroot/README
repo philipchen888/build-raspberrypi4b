@@ -1,51 +1,51 @@
 Build buildroot sdcard image for raspberrypi4b:
 
-   wget https://buildroot.org/downloads/buildroot-2025.08.tar.gz
-   tar -xzf buildroot-2025.08.tar.gz
-   mv buildroot-2025.08 buildroot
-   vi ./buildroot/configs/raspberrypi4_64_defconfig ( append ./patches/rpi4b_defconfig )
-   cp ./patches/linux-bcm2835-audio.fragment ./buildroot/board/raspberrypi4-64
+wget https://buildroot.org/downloads/buildroot-2025.08.tar.gz
+tar -xzf buildroot-2025.08.tar.gz
+mv buildroot-2025.08 buildroot
+vi ./buildroot/configs/raspberrypi4_64_defconfig ( delete KERNEL, delete BR2_DOWNLOAD_FORCE_CHECK_HASHES=y, append ./patches/rpi4b_defconfig )
+cp ./patches/raspberrypi4/config_4.txt ./buildroot/board/raspberrypi4-64/
+cp ./patches/raspberrypi4/cmdline_4.txt ./buildroot/board/raspberrypi4-64/
+cp ./patches/raspberrypi4/cmdline_4.txt ./buildroot/board/raspberrypi/cmdline.txt
 
-   cd buildroot
-   \rm -rf .config output
-   make clean
-   make raspberrypi4_64_defconfig
-   make                         ( It may take 2 hours )
+cd buildroot
+\rm -rf .config output
+make clean
+make raspberrypi4_64_defconfig
+make linux
+make
 
-   The result is in ./output/images/sdcard.img
+The result is in ./output/images/sdcard.img
 
-   sudo dd if=./output/images/sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
+sudo dd if=./output/images/sdcard.img of=/dev/sda bs=4096 conv=notrunc,fsync
 
-   sudo mount /dev/sda1 /mnt
-   sudo vi /mnt/config.txt ( delete disable_overscan=1, add
-   dtparam=audio=on
-   dtparam=i2c_arm=on
-   dtparam=spi=on
-   enable_uart=1
-   max_framebuffers=2
-   dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4
-   dtoverlay=uart2
-   )
-   sync; sudo umount /mnt;
+sudo mount /dev/sda2 /mnt
+sudo vi /mnt/etc/network/interfaces ( delete everything after iface lo inet loopback )
+sudo vi /mnt/etc/vsftpd.conf ( anonymous_enable=NO, local_enable=YES, write_enable=YES )
+sync; sudo umount /mnt;
+Eject sdcard.
 
-   sudo mount /dev/sda2 /mnt
-   sudo vi /mnt/etc/network/interfaces ( delete everything after iface lo inet loopback )
-   sudo vi /mnt/etc/vsftpd.conf ( anonymous_enable=NO, local_enable=YES, write_enable=YES )
-   sync; sudo umount /mnt;
-   Eject sdcard.
-
-Plugin sdcard and ethernet cable to raspberrypi4b.
+Plugin sdcard to raspberrypi4b.
 login:
 username: root
 password: linaro
 
-ifconfig
+uname -a
 
 adduser linaro
+
+wpa_passphrase your_SSID your_passphrase > /etc/ssid.conf ( delete password in ssid.conf )
+wpa_supplicant -B -i wlan0 -c /etc/ssid.conf
+dhcpcd wlan0
+ifconfig
 
 date
 aplay -l
 
 aplay /home/linaro/yoursong.wav
-mpg123 -a hw:0,0 /home/linaro/yoursong.mp3
 mpv --no-video /home/linaro/yoursong.mp3
+
+bluetoothctl list
+hciconfig hci0
+hcitool dev
+hciconfig -a
