@@ -1,8 +1,7 @@
 Build ubuntu-uefi sdcard image for raspberrypi4b:
 
 cd ~/Downloads
-wget https://cdimage.ubuntu.com/releases/plucky/release/ubuntu-25.04-latest-desktop-arm64.iso
-wget https://cdimage.ubuntu.com/releases/noble/release/ubuntu-24.04.3-desktop-arm64.iso
+wget https://cdimage.ubuntu.com/releases/25.10/release/ubuntu-25.10-desktop-arm64.iso
 wget https://github.com/pftf/RPi4/releases/download/v1.43/RPi4_UEFI_Firmware_v1.43.zip
 
 cd ~/build-raspberrypi4b/ubuntu-uefi
@@ -12,8 +11,7 @@ sudo ./mkuefiboot.sh
 sudo mkfs.vfat /dev/sda1
 sudo fdisk -l /dev/sda
 sudo mount /dev/sda1 /mnt
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.43.zip -o/mnt
-sync; sudo umount /mnt;
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.43.zip -o/mnt && sync && sudo umount /mnt
 Eject sdcard from PC.
 
 Plugin usb3 stick to PC.
@@ -21,28 +19,22 @@ sudo ./mksdcardimg.sh
 sudo mkfs.vfat /dev/sda1
 sudo fdisk -l /dev/sda
 sudo mount /dev/sda1 /mnt
-sudo 7z x ~/Downloads/ubuntu-25.04-latest-desktop-arm64.iso -o/mnt
-sync; sudo umount /mnt;
+sudo 7z x ~/Downloads/ubuntu-25.10-desktop-arm64.iso -o/mnt && sync && sudo umount /mnt
 Eject usb3 stick from PC.
 
-Plugin USB2 SATA ssd to PC.
-sudo ./mksatassd.sh
-sudo mkfs.ext4 /dev/sda1
-sudo fdisk -l /dev/sda
-Eject USB2 SATA ssd from PC.
-
 ------------------------------------------------------------------------
-Install ubuntu from usb3 stick ubuntu iso to empty USB2 SATA ssd.
-NOTE: To minimize EMI interference, put USB2 sata ssd to rpi4b bottom USB2 socket,
-      Put keyboard mouse to rpi4b bottom USB3 socket with USB2 extention cable, put
-      usb3 stick to top USB2 socket.
+Install ubuntu from usb3 stick ubuntu iso to USB2 SATA ssd.
+NOTE: To minimize EMI interference, put usb3 stick to rpi4b top USB3 socket,
+      Put wifi dongle to rpi4b bottom USB3 socket, put keyboard mouse to rpi4b bottom
+      USB2 socket with USB2 extention cable. Put USB2 SATA ssd to rpi4b top USB2
+      socket.
 ------------------------------------------------------------------------
 
-Plugin sdcard, usb3 stick and USB2 SATA ssd and ethernet cable to rpi4b. Power on rpi4b.
+Plugin sdcard, usb3 stick, USB2 SATA ssd and USB wifi dongle  to rpi4b. Power on rpi4b.
 Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> usb flash drive.
 Select install
 Double click Install Ubuntu LTS icon.
-Erase disk and install Ubuntu.
+Erase and install Ubuntu.
 Click Install now.
 Contine till finished. Restart.
 
@@ -65,17 +57,14 @@ sudo shutdown -h now
 
 Plugin USB2 sata ssd to PC.
 sudo mount /dev/sda2 /mnt
-For ubuntu-plucky:
 cp ./packages/firmware-brcm80211_20250410-2_all.deb /mnt/home/linaro/
-For ubuntu-noble:
-cp ./packages/firmware-brcm80211_20240909-2_all.deb /mnt/home/linaro/
 sudo cp ./packages/brcmfmac43455-sdio.txt /mnt/lib/firmware/brcm/
 sudo cp ./packages/BCM4345C0.hcd /mnt/lib/firmware/brcm/
 sudo cp ./packages/rtlbt/* /mnt/lib/firmware/rtl_bt/
 sync; sudo umount /mnt;
 Eject USB2 sata ssd from PC.
 
-Plugin USB2 sata ssd to rpi4b USB2 port. Plugin ethernet cable ro rpi4b. Power on rpi4b.
+Plugin USB2 sata ssd to rpi4b USB2 port. Power on rpi4b.
 uname -a
 lsb_release -a
 sudo dpkg -i firmware-brcm80211_20250410-2_all.deb
@@ -100,10 +89,10 @@ aplay -l
 
 sudo rfkill list
 
-mainline kernel 6.14.0-33-generic cannot support rpi4b sound, wifi and bluetooth.
+mainline kernel 6.17.0-6-generic cannot support rpi4b sound, GPU, wifi and bluetooth.
 
 ---------------------------------------------------------------
-Install vendor kernel 6.17.2-v8+
+Install vendor kernel 6.17.6-v8+
 ---------------------------------------------------------------
 
 sudo apt install git cmake device-tree-compiler libfdt-dev build-essential libncurses-dev bison flex libssl-dev libelf-dev fakeroot
@@ -125,9 +114,10 @@ cp custom.dts bcm2711-rpi-4-b.dts
 cd ~/linux
 sudo make mrproper
 make ARCH=arm64 bcm2711_defconfig
-make ARCH=arm64 all -j$(nproc)           ( this may take 4 hours to compile )
+make ARCH=arm64 all -j$(nproc)     ( this may take 4 hours to compile, need external fan )
 sudo make ARCH=arm64 modules_install
 sudo make ARCH=arm64 dtbs_install
+sync
 sudo make ARCH=arm64 install             ( ignore errors )
 
 cd ../
@@ -141,12 +131,12 @@ sudo vi /etc/grub.d/40_custom_uuid ( add
 exec tail -n +3 $0
 
 menuentry "Boot from UUID" {
-    search --no-floppy --fs-uuid --set=root --hint='usb0,gpt2' --hint='mmcblk0,gpt2' --hint='mmcblk1,gpt2' 3775e707-5311-4ee2-a624-58bf98839e93
-    echo    'Loading Linux 6.17.2-v8+ ...'
-    linux /boot/vmlinux-6.17.2-v8+ root=LABEL=rootfs rootwait rw
+    search --no-floppy --fs-uuid --set=root --hint='usb0,gpt2' --hint='mmcblk0,gpt2' --hint='mmcblk1,gpt2' 04119b67-1078-404c-be6a-0e1aff979ff5
+    echo    'Loading Linux 6.17.6-v8+ ...'
+    linux /boot/vmlinux-6.17.6-v8+ root=LABEL=rootfs rootwait rw
     echo    'Loading initial ramdisk ...'
-    initrd /boot/initrd.img-6.17.2-v8+
-    devicetree /boot/dtbs/6.17.2-v8+/broadcom/bcm2711-rpi-4-b.dtb
+    initrd /boot/initrd.img-6.17.6-v8+
+    devicetree /boot/dtbs/6.17.6-v8+/broadcom/bcm2711-rpi-4-b.dtb
 }
 )
 
@@ -160,7 +150,8 @@ cd
 sync
 sudo reboot
 
-Setup wifi. Unplug ethernet cable from rpi4b.
+Remove wifi usb dongle from rpi4b.
+Forget wifi. Setup wifi.
 sudo ifconfig
 uname -a
 lsb_release -a
@@ -168,7 +159,7 @@ sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
 Check if Ubuntu is running UEFI mode:
 ls /sys/firmware/efi
 
-sudo apt install git zip rfkill speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc vlc vlc-plugin-video-output pavucontrol
+sudo apt install git zip rfkill speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc vlc vlc-plugin-video-output pavucontrol vsftpd
 
 speedtest-cli --secure
 
@@ -183,11 +174,15 @@ sudo apt upgrade
 sudo apt install firefox-esr
 firefox -> youtube.com -> search YmDNhi07_Ho
 
+Do follows on PC, then ftp swan.mp4 to rpi4b.
+(
 git clone https://github.com/yt-dlp/yt-dlp.git
 cd yt-dlp
 make
 cd ../
-~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
+~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v libx264 -b:v 2M -c:a copy"
+)
+
 mpv --hwdec=auto-copy swan.mp4
 ffplay swan.mp4
 cvlc --gl=wgl --glconv=any swan.mp4

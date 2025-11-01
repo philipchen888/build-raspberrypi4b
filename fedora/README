@@ -1,32 +1,65 @@
 Build fedora sdcard image for raspberrypi4b:
 
-see https://docs.fedoraproject.org/en-US/quick-docs/raspberry-pi/#_installing_fedora_on_a_raspberry_pi_for_linux_users
-wget https://mirror.umd.edu/fedora/linux/releases/39/Workstation/aarch64/images/Fedora-Workstation-39-1.5.aarch64.raw.xz
+cd ~/Downloads
+wget https://github.com/pftf/RPi4/releases/download/v1.43/RPi4_UEFI_Firmware_v1.43.zip
+wget https://archives.fedoraproject.org/pub/fedora/linux/releases/43/Workstation/aarch64/images/Fedora-Workstation-Disk-43-1.6.aarch64.raw.xz
 
-Plugin USB2 sata ssd to PC.
+cd ~/build-raspberrypi4b/fedora
+Plugin sdcard to PC.
+sudo ./mkuefiboot.sh
+sudo mkfs.vfat /dev/sda1
+sudo fdisk -l /dev/sda
+sudo mount /dev/sda1 /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.43.zip -o/mnt && sync && sudo umount /mnt
+Eject sdcard from PC.
+
+Plugin usb3 stick to PC.
 cd ~/build-raspberrypi4b/fedora
 sudo ./mksdcardimg.sh
 sudo mkfs.vfat /dev/sda1
 sudo mkfs.ext4 /dev/sda2
 sudo mkfs.ext4 /dev/sda3
 sudo fdisk -l /dev/sda
-xzcat Fedora-Workstation-39-1.5.aarch64.raw.xz | sudo dd status=progress bs=4096 of=/dev/sda skip=256 seek=256 conv=notrunc,fsync 
-Unplug USB2 sata ssd from PC.
+xzcat ~/Downloads/Fedora-Workstation-Disk-43-1.6.aarch64.raw.xz | sudo dd status=progress bs=4096 of=/dev/sda skip=4352 seek=4352 conv=notrunc,fsync
+Eject usb3 stick from PC.
 
-Plugin USB2 sata ssd to rpi4b. Power on rpi4b.
-
-Disable power saving and screen saver.
-sudo dnf update --exclude=kernel*
+Plugin sdcard and usb3 stick to rpi4b. Power on rpi4b.
+Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
+Setup wifi, disable power saving, auto suspend and screen saver.
+sudo btrfs filesystem resize max /
+df .
+uname -a
+cat /etc/fedora-release
+sudo systemctl start sshd.service
+sudo systemctl enable sshd.service
+rpm -qa | grep -i kernel
+sudo dnf install kernel-devel-6.17.1-300.fc43.aarch64
+rpm -qa | grep -i kernel
+add: exclude=kernel* to /etc/dnf/dnf.conf
+sudo dnf update
+sudo grub2-editenv create
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+sudo sudo grubby --set-default /boot/vmlinuz-6.17.1-300.fc43.aarch64
+sudo grubby --default-kernel
+sudo grubby --info DEFAULT
+sudo grubby --info /boot/vmlinuz-6.17.1-300.fc43.aarch64
+sudo ls -l /boot/loader/entries
+sync
+free
 sudo reboot
 
+sudo dnf install yt-dlp mpv rfkill speedtest-cli glmark2-es2-wayland
+speedtest-cli --secure
 glmark2-es2-wayland
 
-sudo dnf install yt-dlp mpv rfkill speedtest-cli
-speedtest-cli
+aplay -l
+pavucontrol  ( select card 0 as default )
+
+firefox -> youtube.com -> search YmDNhi07_Ho
+
 yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' hyUhEjtlDLA -o avemaria.mp4
 mpv avemaria.mp4
 
 sudo rfkill list
-hciconfig hci0
-hcitool dev
-hciconfig -a
+
+mainline kernel 6.17.1-300.fc43.aarch64 cannot support rpi4b sound, GPU and bluetooth.
