@@ -1,0 +1,94 @@
+{
+    "description": "Poky Yocto build for Raspberrypi4b",
+    "sources": {
+        "bitbake": {
+            "git-remote": {
+                "remotes": {
+                    "origin": {
+                        "uri": "git://git.openembedded.org/bitbake;protocol=https"
+                    }
+                },
+                "branch": "master",
+                "rev": "master"
+            },
+            "path": "bitbake"
+        },
+        "openembedded-core": {
+            "git-remote": {
+                "remotes": {
+                    "origin": {
+                        "uri": "git://git.openembedded.org/openembedded-core;protocol=https"
+                    }
+                },
+                "branch": "master",
+                "rev": "master"
+            },
+            "path": "openembedded-core"
+        },
+        "meta-yocto": {
+            "git-remote": {
+                "remotes": {
+                    "origin": {
+                        "uri": "git://git.yoctoproject.org/meta-yocto;protocol=https"
+                    }
+                },
+                "branch": "master",
+                "rev": "master"
+            },
+            "path": "meta-yocto"
+        },
+        "yocto-docs": {
+            "git-remote": {
+                "remotes": {
+                    "origin": {
+                        "uri": "git://git.yoctoproject.org/yocto-docs;protocol=https"
+                    }
+                },
+                "branch": "master",
+                "rev": "master"
+            },
+            "path": "yocto-docs"
+        },
+        "meta-raspberrypi": {
+            "git-remote": {
+                "remotes": {
+                    "origin": {
+                        "uri": "git://git.yoctoproject.org/meta-raspberrypi;protocol=https"
+                    }
+                },
+                "branch": "master",
+                "rev": "master"
+            },
+            "path": "meta-raspberrypi"
+        },
+        "meta-openembedded": {
+            "git-remote": {
+                "remotes": {
+                    "origin": {
+                        "uri": "git://git.openembedded.org/meta-openembedded;protocol=https"
+                    }
+                },
+                "branch": "master",
+                "rev": "master"
+            },
+            "path": "meta-openembedded"
+        }
+    },
+    "bitbake-setup": {
+        "configurations": [
+            {
+                "bb-layers": ["openembedded-core/meta","meta-yocto/meta-yocto-bsp","meta-yocto/meta-poky","meta-openembedded/meta-oe","meta-openembedded/meta-filesystems","meta-openembedded/meta-networking","meta-openembedded/meta-python","meta-openembedded/meta-multimedia","meta-openembedded/meta-gnome","meta-raspberrypi"],
+                "configurations": [
+                    {
+                        "name": "raspberrypi4b",
+                        "description": "Poky Yocto build for Raspberrypi4b",
+                        "machine": "raspberrypi4-64",
+                        "distro": "poky"
+                    }
+                ]
+            }
+        ]
+    },
+    "version": "1.0"
+}
+

@@ -2,21 +2,27 @@ Build yocto sdcard image for raspberrypi4b:
 
    mkdir ${HOME}/download
    mkdir ${HOME}/sstate-cache
-   git clone git://git.yoctoproject.org/poky --depth=1 -b master
-   cd poky
-   git clone git://git.openembedded.org/meta-openembedded.git --depth=1 -b master
-   git clone https://github.com/agherzan/meta-raspberrypi.git --depth=1 -b master
+   mkdir mypoky; cd mypoky;
+   git clone https://github.com/openembedded/bitbake.git -b master
+   rm -rf ~/bitbake-builds
+   python3 bitbake/bin/bitbake-setup settings set default top-dir $PWD && python3 bitbake/bin/bitbake-setup settings set default top-dir-prefix $PWD && python3 bitbake/bin/bitbake-setup settings set default top-dir-name build && python3 bitbake/bin/bitbake-setup settings set default setup-dir $PWD
 
-   source oe-init-build-env
-   cd ../../
-   make apply_patches
+   rm -rf build config layers
+   python3 bitbake/bin/bitbake-setup init --setup-dir-name $PWD --non-interactive ../patches/raspberrypi4b.conf.json raspberrypi4b
+   cp ../patches/local.conf ./build/conf
+   mkdir -p ./layers/meta-raspberrypi/recipes-daemons/vsftpd/
+   vi ./layers/meta-raspberrypi/recipes-daemons/vsftpd/vsftpd_3.0.5.bbappend ( add
+   PACKAGECONFIG:remove = "tcp-wrappers"
+   EXTRA_OECONF:append = " --without-tcp-wrappers"
+   )
+   . ./build/init-build-env
 
-   cd poky; source oe-init-build-env;
    bitbake -s
-   bitbake -c cleansstate u-boot linux-raspberrypi core-image-weston
+   bitbake -c cleansstate u-boot linux-raspberrypi core-image-weston clang
    bitbake -k u-boot
+   bitbake -k clang llvm-native clang-native rust-native
    bitbake -k linux-raspberrypi
-   bitbake -k core-image-weston
+   bitbake -k llvm core-image-weston
 
    The result is in ./tmp/deploy/images/raspberrypi4-64/core-image-weston-raspberrypi4-64.rootfs.wic.bz2
    bzip2 -d -f ./tmp/deploy/images/raspberrypi4-64/core-image-weston-raspberrypi4-64.rootfs.wic.bz2
@@ -38,6 +44,7 @@ Build yocto sdcard image for raspberrypi4b:
    sudo umount /mnt
 
    sudo mount /dev/sda2 /mnt
+   sudo vi /mnt/etc/vsftpd.conf  ( change to tcp_wrappers=NO )
    sudo vi /mnt/etc/network/interfaces ( delete everything after iface lo inet loopback )
    sudo vi /mnt/etc/xdg/weston/weston.ini ( delete everything, add
    [core]
@@ -52,8 +59,7 @@ Build yocto sdcard image for raspberrypi4b:
    cursor-theme=Adwaita
    cursor-size=16
    )
-   sync
-   sudo umount /mnt
+   sync; sudo umount /mnt;
    Eject sdcard from PC.
 
    \rm -rf ./tmp/work
@@ -85,7 +91,7 @@ glmark2-es2-wayland
 
 aplay /home/linaro/song.wav
 mpv --no-video /home/linaro/song.mp3
-mpv --gpu-context=wayland --fullscreen /home/linaro/swan.mp4
+mpv --gpu-context=wayland -fs /home/linaro/video.mp4
 
 hciconfig hci0
 hciconfig -a
