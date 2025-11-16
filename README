@@ -40,7 +40,7 @@ Steps to build raspberrypi4b sdcard image:
    Plugin sdcard to rpi4b and boot. When monitor display green it's done. Power off rpi4b.
 
 3. cd ~/build-raspberrypi4b/kernel ( Compile vendor's kernel )
-   git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.17.y
+   git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.18.y
    vi ./linux/arch/arm64/configs/bcm2711_defconfig (  delete CONFIG_CMDLINE, change CONFIG_I2C_CHARDEV=m to CONFIG_I2C_CHARDEV=y )
 
    make kernel

@@ -1,9 +1,9 @@
 Build buildroot sdcard image for raspberrypi4b:
 
-wget https://buildroot.org/downloads/buildroot-2025.08.tar.gz
-tar -xzf buildroot-2025.08.tar.gz
-mv buildroot-2025.08 buildroot
-vi ./buildroot/configs/raspberrypi4_64_defconfig ( delete KERNEL, delete BR2_DOWNLOAD_FORCE_CHECK_HASHES=y, append ./patches/rpi4b_defconfig )
+wget https://buildroot.org/downloads/buildroot-2025.08.1.tar.gz
+tar -xzf buildroot-2025.08.1.tar.gz
+mv buildroot-2025.08.1 buildroot
+vi ./buildroot/configs/raspberrypi4_64_defconfig ( delete KERNEL, delete BR2_DOWNLOAD_FORCE_CHECK_HASHES=y, BR2_GLOBAL_PATCH_DIR, append ./patches/rpi4b_defconfig )
 cp ./patches/raspberrypi4/config_4.txt ./buildroot/board/raspberrypi4-64/
 cp ./patches/raspberrypi4/cmdline_4.txt ./buildroot/board/raspberrypi4-64/
 cp ./patches/raspberrypi4/cmdline_4.txt ./buildroot/board/raspberrypi/cmdline.txt
@@ -43,7 +43,7 @@ date
 aplay -l
 
 aplay /home/linaro/yoursong.wav
-mpv --no-video /home/linaro/yoursong.mp3
+mpv /home/linaro/yoursong.mp3
 
 bluetoothctl list
 hciconfig hci0
