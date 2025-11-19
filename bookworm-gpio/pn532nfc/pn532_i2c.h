@@ -13,7 +13,6 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 
-#include <wiringPi.h>
 // #include <wiringPiSPI.h>
 
 #define TRUE    (1==1)

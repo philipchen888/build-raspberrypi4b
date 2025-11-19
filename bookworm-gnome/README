@@ -30,6 +30,9 @@ sudo apt update
 sudo apt upgrade
 sync
 free
+sudo shutdown -h now
+
+Power on rpi4b.
 sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
 glxinfo | grep OpenGL
 date
