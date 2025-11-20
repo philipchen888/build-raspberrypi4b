@@ -3,18 +3,15 @@ Build bookworm-gnome sdcard for raspberrypi4b:
 Input files: ../rootfs-bookworm/linaro-esp.img
              ../rootfs-bookworm/linaro-rootfs.img
 
-cd ~/Downloads
-wget https://github.com/pftf/RPi4/releases/download/v1.43/RPi4_UEFI_Firmware_v1.43.zip
-
 cd ~/build-raspberrypi4b/bookworm-gnome
 
-Plugin sdcard/USB2-SATA-SSD to PC.
+Plugin sdcard/usb3 stick to PC.
 sudo ./mksdcardimg.sh
 sudo mount /dev/sda1 /mnt
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.43.zip -o/mnt && sync && sudo umount /mnt
-Eject sdcard/USB2 SATA ssd from PC.
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware.zip -o/mnt && sync && sudo umount /mnt
+Eject sdcard/usb3 stick from PC.
 
-Plugin sdcard/USB2-SATA-SSD to rpi4b.
+Plugin sdcard/usb3 stick to rpi4b.
 Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
 Login:
 Username: linaro
@@ -63,7 +60,7 @@ cd ../
 ~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v libx264 -b:v 2M -c:a copy"
 )
 
-mpv --hwdec=auto-copy swan.mp4
+mpv swan.mp4
 ffplay swan.mp4
 cvlc --gl=wgl --glconv=any swan.mp4
 

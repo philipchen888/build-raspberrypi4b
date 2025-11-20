@@ -1,7 +1,6 @@
 Build fedora sdcard image for raspberrypi4b:
 
 cd ~/Downloads
-wget https://github.com/pftf/RPi4/releases/download/v1.43/RPi4_UEFI_Firmware_v1.43.zip
 wget https://archives.fedoraproject.org/pub/fedora/linux/releases/43/Workstation/aarch64/images/Fedora-Workstation-Disk-43-1.6.aarch64.raw.xz
 
 cd ~/build-raspberrypi4b/fedora
@@ -10,7 +9,7 @@ sudo ./mkuefiboot.sh
 sudo mkfs.vfat /dev/sda1
 sudo fdisk -l /dev/sda
 sudo mount /dev/sda1 /mnt
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.43.zip -o/mnt && sync && sudo umount /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware.zip -o/mnt && sync && sudo umount /mnt
 Eject sdcard from PC.
 
 Plugin usb3 stick to PC.

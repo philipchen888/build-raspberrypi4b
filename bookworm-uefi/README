@@ -2,27 +2,26 @@ Build bookworm-uefi sdcard image for raspberrypi4b:
 
 cd ~/Downloads
 wget https://mirror.us.mirhosting.net/debian-cd/12.11.0/arm64/iso-cd/debian-12.11.0-arm64-netinst.iso
-wget https://github.com/pftf/RPi4/releases/download/v1.43/RPi4_UEFI_Firmware_v1.43.zip
 
 cd ~/build-raspberrypi4b/bookworm-uefi
 
-Plugin USB2 SATA ssd to PC.
+Plugin usb3 stick to PC.
 sudo ./mksdcardimg.sh
 sudo mkfs.vfat /dev/sda1
 sudo fdisk -l /dev/sda
 sudo mount -t vfat /dev/sda1 /mnt
 sudo 7z x ~/Downloads/debian-12.11.0-arm64-netinst.iso -o/mnt
-sudo 7z x ~/Downloads/RPi4_UEFI_Firmware_v1.43.zip -o/mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware.zip -o/mnt
 sync; sudo umount /mnt;
-Eject USB2 SATA ssd from PC.
+Eject usb3 stick from PC.
 
 ------------------------------------------------------------------------
-Install bookworm to USB2 SATA ssd.
-NOTE: To minimize EMI interference, put USB2 sata ssd to rpi4b bottom USB2 socket,
-      Put keyboard mouse to rpi4b bottom USB3 socket with USB2 extention cable.
+Install bookworm to usb3 stick.
+NOTE: To minimize EMI interference, put usb3 stick to rpi4b top USB3 socket,
+      Put keyboard mouse to rpi4b bottom USB2 socket with USB2 extention cable.
 ------------------------------------------------------------------------
 
-Plugin USB2 sata ssd and ethernet cable to rpi4b. Power on rpi4b.
+Plugin usb3 stick and ethernet cable to rpi4b. Power on rpi4b.
 Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
 Select install
 loading missing firmware? No
@@ -35,19 +34,16 @@ usermod -aG adm,sudo,video linaro
 sync
 shutdown -h now
 
-Plugin USB2 sata ssd to PC.
+Plugin usb3 stick to PC.
 sudo cp ./packages/brcmfmac43455-sdio.txt /media/$USER/*/lib/firmware/brcm/
 sudo cp ./packages/BCM4345C0.hcd /media/$USER/*/lib/firmware/brcm/
-cd /media/$USER/*/lib/firmware
-sudo mkdir rtl_bt
-sudo cp /home/$USER/build-raspberrypi4b/bookworm-uefi/packages/rtl* ./rtl_bt
-ls -la ./rtl_bt
-cd
-sync 
-sudo umount /media/$USER/*
-Eject USB2 sata ssd from PC. 
+sudo mkdir -p /media/$USER/*/lib/firmware/rtl_bt
+sudo cp ./packages/rtl* /media/$USER/*/lib/firmware/rtl_bt
+ls -la /media/$USER/*/lib/firmware/rtl_bt
+sync
+Umount, Eject usb3 stick from PC. 
 
-Plugin USB2 sata ssd to rpi4b, Unplug ethernet cable from rpi4b. Power on rpi4b.
+Plugin usb3 stick to rpi4b, Unplug ethernet cable from rpi4b. Power on rpi4b.
 Setup wifi.
 sudo apt install openssh-server net-tools pulseaudio-utils
 sudo ifconfig
@@ -63,7 +59,7 @@ echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install build-essential speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc vlc vlc-plugin-video-output pavucontrol rfkill
+sudo apt install build-essential speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc vlc vlc-plugin-video-output pavucontrol rfkill firmware-realtek
 
 speedtest-cli --secure
 
@@ -73,38 +69,21 @@ aplay -l
 
 sudo rfkill list
 
-mainline kernel 6.1.0-40-arm64 doesn't support rpi4b sound, GPU and bluetooth.
+mainline kernel 6.1.0-41-arm64 doesn't support rpi4b sound, GPU and bluetooth.
+sudo shutdown -h now
 
 ---------------------------------------------------------------
-Install vendor kernel 6.17.1-v8+
+Install vendor kernel 6.18.y
 ---------------------------------------------------------------
 
-sudo apt install git cmake device-tree-compiler libfdt-dev build-essential libncurses-dev bison flex libssl-dev libelf-dev fakeroot
+See ../kernel/README to compile vendor's kernel on PC. Then copy the resulting files to the Pi’s /boot and /lib/modules/.
+Plugin usb3 stick to PC.
+sudo cp -r ../kernel/linux/tmp/lib/modules/* /media/$USER/*/lib/modules
+sudo cp -r ../kernel/linux/tmp/boot/* /media/$USER/*/boot
+sync
+Umount, Eject usb3 stick from PC.
 
-git clone https://github.com/raspberrypi/linux --depth=1 -b rpi-6.17.y
-vi ./linux/arch/arm64/configs/bcm2711_defconfig ( delete CONFIG_CMDLINE, change CONFIG_I2C_CHARDEV=m to CONFIG_I2C_CHARDEV=y )
-
-Install ovmerge from  https://github.com/raspberrypi/utils
-git clone https://github.com/raspberrypi/utils.git
-sudo apt install libgnutls28-dev
-cd utils
-cmake .
-make
-sudo make install
-which ovmerge
-cd ../linux/arch/arm/boot/dts/broadcom
-cp bcm2711-rpi-4-b.dts bcm2711-rpi-4-b.dts.org
-ovmerge -c -p bcm2711-rpi-4-b.dts,i2c1=on,i2c_arm=on,spi=on,audio=on ../overlays/uart2-overlay.dts ../overlays/miniuart-bt-overlay.dts ../overlays/vc4-kms-v3d-pi4-overlay.dts,cma-512 ../overlays/pwm-2chan-overlay.dts,pin=12,func=4,pin2=13,func2=4 > custom.dts
-cp custom.dts bcm2711-rpi-4-b.dts
-cd ~/linux
-sudo make mrproper
-make ARCH=arm64 bcm2711_defconfig
-make ARCH=arm64 all -j$(nproc)        ( this may take 4 hours to compile )
-sudo make ARCH=arm64 modules_install
-sudo make ARCH=arm64 dtbs_install
-sudo make ARCH=arm64 install
-
-cd ../
+Boot rpi4b with old kernel.
 ls -la /boot
 df .
 sudo e2label /dev/sda2 rootfs
@@ -115,12 +94,12 @@ sudo vi /etc/grub.d/40_custom_uuid ( add
 exec tail -n +3 $0
 
 menuentry "Boot from UUID" {
-    search --no-floppy --fs-uuid --set=root --hint='usb0,gpt2' --hint='mmcblk0,gpt2' --hint='mmcblk1,gpt2' a954378c-c6a9-4649-936d-29b385dd5f3d
-    echo    'Loading Linux 6.17.1-v8+ ...'
-    linux /boot/vmlinuz-6.17.1-v8+ root=LABEL=rootfs rootwait rw
+    search --no-floppy --fs-uuid --set=root --hint='usb0,gpt2' --hint='mmcblk0,gpt2' --hint='mmcblk1,gpt2' 6c7dc7fc-848c-4a32-892d-de24e4dfad0d
+    echo    'Loading Linux 6.18.0-rc5-v8+ ...'
+    linux /boot/vmlinuz-6.18.0-rc5-v8+ root=LABEL=rootfs rootwait rw
     echo    'Loading initial ramdisk ...'
-    initrd /boot/initrd.img-6.17.1-v8+
-    devicetree /boot/dtbs/6.17.1-v8+/broadcom/bcm2711-rpi-4-b.dtb
+    initrd /boot/initrd.img-6.18.0-rc5-v8+
+    devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
 }
 )
 
@@ -130,7 +109,7 @@ sudo chmod +x /etc/grub.d/40_custom_uuid
 
 sudo vi /etc/default/grub ( change GRUB_DEFAULT=0 to GRUB_DEFAULT="Boot from UUID" )
 sudo update-grub  ( generate grub.cfg )
-cd
+sudo update-initramfs -c -k 6.18.0-rc5-v8+
 sync
 sudo reboot
 
@@ -140,7 +119,7 @@ sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
 Check if Debian is running UEFI mode:
 ls /sys/firmware/efi
 
-sudo apt install git zip rfkill speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc firefox-esr vlc vlc-plugin-video-output vsftpd
+sudo apt install git zip speedtest-cli python3-pip python3-setuptools firefox-esr vsftpd
 
 speedtest-cli --secure
 
@@ -160,7 +139,7 @@ cd ../
 ~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v libx264 -b:v 2M -c:a copy"
 )
 
-mpv --hwdec=auto-copy swan.mp4
+mpv swan.mp4
 ffplay swan.mp4
 cvlc --gl=wgl --glconv=any swan.mp4
 
