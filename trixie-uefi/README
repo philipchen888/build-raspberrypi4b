@@ -56,11 +56,9 @@ echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install build-essential speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc vlc vlc-plugin-video-output pavucontrol rfkill firmware-realtek
+sudo apt install build-essential speedtest-cli python3-pip python3-setuptools pavucontrol rfkill
 
 speedtest-cli --secure
-
-glmark2-es2-wayland
 
 aplay -l
 
@@ -91,7 +89,7 @@ sudo vi /etc/grub.d/40_custom_uuid ( add
 exec tail -n +3 $0
 
 menuentry "Boot from UUID" {
-    search --no-floppy --fs-uuid --set=root --hint='usb0,gpt3' --hint='mmcblk0,gpt3' --hint='mmcblk1,gpt3' ddf68f10-2e5c-4c66-927d-f01cb39a004f
+    search --no-floppy --fs-uuid --set=root --hint='usb0,gpt3' --hint='mmcblk0,gpt3' --hint='mmcblk1,gpt3' 1289bd57-a01f-4367-954a-50eb01f8201d
     echo    'Loading Linux 6.18.0-rc5-v8+ ...'
     linux /boot/vmlinuz-6.18.0-rc5-v8+ root=LABEL=rootfs rootwait rw
     echo    'Loading initial ramdisk ...'
@@ -116,7 +114,21 @@ sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
 Check if Debian is running UEFI mode:
 ls /sys/firmware/efi
 
-sudo apt install git zip speedtest-cli python3-pip python3-setuptools firefox-esr vsftpd
+Install mesa 25:
+sudo vi /etc/apt/sources.list ( add
+deb http://archive.raspberrypi.org/debian trixie main
+)
+su -
+wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | gpg --dearmor | sudo tee $TARGET_ROOTFS_DIR/etc/apt/trusted.gpg.d/raspberrypi4-keys.gpg > /dev/null
+exit
+sudo apt update
+sudo apt upgrade -y
+sudo apt install -y v4l-utils mesa-vulkan-drivers
+sudo apt remove orca -y
+sync
+sudo reboot
+
+sudo apt install git zip rfkill speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland firefox-esr vsftpd firmware-realtek
 
 speedtest-cli --secure
 
@@ -136,9 +148,8 @@ cd ../
 ~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v libx264 -b:v 2M -c:a copy"
 )
 
-mpv swan.mp4
+mpv --hwdec=drm-copy swan.mp4
 ffplay swan.mp4
-cvlc --gl=wgl --glconv=any swan.mp4
 
 Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
 sudo rfkill list

@@ -25,7 +25,7 @@ sudo ifconfig
 sudo dpkg-reconfigure tzdata
 sudo dpkg-reconfigure locales
 date
-sudo apt update
+sudo apt update ( if failed type: sudo systemctl stop packagekit )
 sudo apt upgrade
 sync
 free
@@ -42,7 +42,7 @@ echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc firefox-esr vlc vlc-plugin-video-output rfkill vsftpd
+sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland firefox-esr rfkill vsftpd
 
 speedtest-cli --secure
 
@@ -64,7 +64,6 @@ cd ../
 
 mpv swan.mp4
 ffplay swan.mp4
-cvlc --gl=wgl --glconv=any swan.mp4
 
 Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
 sudo rfkill list

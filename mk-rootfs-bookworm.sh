@@ -46,7 +46,7 @@ export KERNEL_VERSION=$(ls $TARGET_ROOTFS_DIR/boot/vmlinuz-* 2>/dev/null | sed '
 echo $KERNEL_VERSION
 sudo sed -e "s/6.16.0-rc7-v8-16k+/$KERNEL_VERSION/g" < ../kernel/patches/40_custom_uuid | sudo tee $TARGET_ROOTFS_DIR/boot/40_custom_uuid > /dev/null
 cat $TARGET_ROOTFS_DIR/boot/40_custom_uuid
-# wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | gpg --dearmor | sudo tee $TARGET_ROOTFS_DIR/etc/apt/trusted.gpg.d/raspberrypi4-keys.gpg > /dev/null
+wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | gpg --dearmor | sudo tee $TARGET_ROOTFS_DIR/etc/apt/trusted.gpg.d/raspberrypi4-keys.gpg > /dev/null
 
 # overlay folder
 sudo cp -rf ../overlay/* $TARGET_ROOTFS_DIR/
@@ -67,13 +67,13 @@ cat << EOF | sudo chroot $TARGET_ROOTFS_DIR
 rm -rf /etc/resolv.conf
 echo -e "nameserver 8.8.8.8\nnameserver 8.8.4.4" > /etc/resolv.conf
 resolvconf -u
+cat /etc/resolv.conf
 
 # Install mesa 24
-# echo -e "deb http://archive.raspberrypi.org/debian bookworm main" >> /etc/apt/sources.list
+echo -e "deb http://archive.raspberrypi.org/debian bookworm main" >> /etc/apt/sources.list
 apt-get update
 apt-get upgrade -y
-apt-get install -y build-essential git wget v4l-utils grub-efi-arm64 e2fsprogs zstd initramfs-tools gdm3
-# apt-get install -y build-essential git wget v4l-utils grub-efi-arm64 e2fsprogs zstd initramfs-tools mesa-vulkan-drivers gdm3
+apt-get install -y build-essential git wget v4l-utils grub-efi-arm64 e2fsprogs zstd initramfs-tools mesa-vulkan-drivers gdm3
 
 ls -la /boot/firmware
 rm -rf /boot/firmware
