@@ -1,5 +1,8 @@
 Build bookworm-uefi sdcard image for raspberrypi4b:
 
+Input files ../kernel/linux/tmp/lib/modules/
+            ../kernel/linux/tmp/boot/
+
 cd ~/Downloads
 wget https://mirror.us.mirhosting.net/debian-cd/12.11.0/arm64/iso-cd/debian-12.11.0-arm64-netinst.iso
 
@@ -25,26 +28,51 @@ Plugin usb3 stick and ethernet cable to rpi4b. Power on rpi4b.
 Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
 Select install
 loading missing firmware? No
-Select debian desktop and gnome in addition to ssh and standard system utilities.
 User name: linaro
+Manual partion, select free, Automatic, All, Finish, Yes
+Select debian desktop and gnome in addition to ssh and standard system utilities.
 
-Disable power saving, auto suspend and screen saver.
+Plugin usb3 stick to PC.
+sudo fdisk -l /dev/sda
+sudo e2label /dev/sda2 rootfs
+sudo blkid /dev/sda1 ( write down UUID )
+sudo blkid /dev/sda2 ( write down UUID )
+sudo mount /dev/sda2 /mnt
+sudo cp -r ../kernel/linux/tmp/lib/modules/* /mnt/lib/modules
+sudo cp -r ../kernel/linux/tmp/boot/* /mnt/boot
+ls -la /mnt/boot
+sudo touch /mnt/boot/grub/grub.cfg
+sudo vi /mnt/boot/grub/grub.cfg ( delete everything, add
+set timeout=5
+set default="Boot UUID"
+set menu_color_normal=white/black
+set menu_color_highlight=white/green
+
+menuentry "Boot UUID" {
+    search --no-floppy --fs-uuid --set=root 9b985242-be19-4c26-9c48-d26045167abe
+    echo    'Loading Linux 6.18.0-rc7-v8+ ...'
+    linux /boot/vmlinuz-6.18.0-rc7-v8+ root=LABEL=rootfs rootwait rw rootdelay=10
+    echo    'Loading initial ramdisk ...'
+    initrd /boot/initrd.img-6.1.0-41-arm64
+    devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
+}
+)
+sudo vi /mnt/etc/fstab ( change UUID for /boot/efi )
+sudo cp ./packages/brcmfmac43455-sdio.txt /mnt/lib/firmware/brcm/
+sudo cp ./packages/BCM4345C0.hcd /mnt/lib/firmware/brcm/
+sudo mkdir -p /mnt/lib/firmware/rtl_bt
+sudo cp ./packages/rtl* /mnt/lib/firmware/rtl_bt
+ls -la /mnt/lib/firmware/rtl_bt
+sync; sudo umount /mnt;
+Eject usb3 stick from PC. 
+
+Plugin usb3 stick to rpi4b, Unplug ethernet cable from rpi4b. Power on rpi4b.
+Setup wifi. Disable power saving, auto suspend and screen saver.
 su -
 usermod -aG adm,sudo,video linaro
 sync
-shutdown -h now
+reboot
 
-Plugin usb3 stick to PC.
-sudo cp ./packages/brcmfmac43455-sdio.txt /media/$USER/*/lib/firmware/brcm/
-sudo cp ./packages/BCM4345C0.hcd /media/$USER/*/lib/firmware/brcm/
-sudo mkdir -p /media/$USER/*/lib/firmware/rtl_bt
-sudo cp ./packages/rtl* /media/$USER/*/lib/firmware/rtl_bt
-ls -la /media/$USER/*/lib/firmware/rtl_bt
-sync
-Umount, Eject usb3 stick from PC. 
-
-Plugin usb3 stick to rpi4b, Unplug ethernet cable from rpi4b. Power on rpi4b.
-Setup wifi.
 sudo apt install openssh-server net-tools pulseaudio-utils
 sudo ifconfig
 uname -a
@@ -52,62 +80,10 @@ lsb_release -a
 sudo apt update; sudo apt upgrade;
 sync
 free
-Check if Debian is running UEFI mode:
-ls /sys/firmware/efi
-Check display mode: ( wayland or x11 )
-echo $XDG_SESSION_TYPE
-Check audio driver: ( pulseaudio or pipewire )
-pactl info
-
-sudo apt install build-essential speedtest-cli python3-pip python3-setuptools pavucontrol rfkill
-
-speedtest-cli --secure
-
-aplay -l
-
-sudo rfkill list
-
-mainline kernel 6.1.0-41-arm64 doesn't support rpi4b sound, GPU and bluetooth.
-sudo shutdown -h now
-
----------------------------------------------------------------
-Install vendor kernel 6.18.y
----------------------------------------------------------------
-
-See ../kernel/README to compile vendor's kernel on PC. Then copy the resulting files to the Pi’s /boot and /lib/modules/.
-Plugin usb3 stick to PC.
-sudo cp -r ../kernel/linux/tmp/lib/modules/* /media/$USER/*/lib/modules
-sudo cp -r ../kernel/linux/tmp/boot/* /media/$USER/*/boot
-sync
-Umount, Eject usb3 stick from PC.
-
-Boot rpi4b with old kernel.
-ls -la /boot
-df .
-sudo e2label /dev/sda2 rootfs
-sudo blkid /dev/sda2   ( look for LABEL and UUID )
-
-sudo vi /etc/grub.d/40_custom_uuid ( add
-#!/bin/sh
-exec tail -n +3 $0
-
-menuentry "Boot from UUID" {
-    search --no-floppy --fs-uuid --set=root --hint='usb0,gpt2' --hint='mmcblk0,gpt2' --hint='mmcblk1,gpt2' 71c8ec0d-5cc2-4470-9354-8b2e4e5f074a
-    echo    'Loading Linux 6.18.0-rc5-v8+ ...'
-    linux /boot/vmlinuz-6.18.0-rc5-v8+ root=LABEL=rootfs rootwait rw
-    echo    'Loading initial ramdisk ...'
-    initrd /boot/initrd.img-6.18.0-rc5-v8+
-    devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
-}
+sudo update-initramfs -u -k $(uname -r)
+sudo vi /boot/grub/grub.cfg ( change to:
+   initrd /boot/initrd.img-6.18.0-rc7-v8+
 )
-
-Note: change the above UUID to real UUID like: b3adbe54-ab88-4da5-a9a6-08cf87a09d69
-
-sudo chmod +x /etc/grub.d/40_custom_uuid
-
-sudo vi /etc/default/grub ( change GRUB_DEFAULT=0 to GRUB_DEFAULT="Boot from UUID" )
-sudo update-grub  ( generate grub.cfg )
-sudo update-initramfs -c -k 6.18.0-rc5-v8+
 sync
 sudo reboot
 
@@ -116,22 +92,12 @@ lsb_release -a
 sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
 Check if Debian is running UEFI mode:
 ls /sys/firmware/efi
+Check display mode: ( wayland or x11 )
+echo $XDG_SESSION_TYPE
+Check audio driver: ( pulseaudio or pipewire )
+pactl info
 
-Install mesa 24:
-sudo vi /etc/apt/sources.list ( add
-deb http://archive.raspberrypi.org/debian bookworm main
-)
-su -
-wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | gpg --dearmor | sudo tee $TARGET_ROOTFS_DIR/etc/apt/trusted.gpg.d/raspberrypi4-keys.gpg > /dev/null
-exit
-sudo apt update
-sudo apt upgrade -y
-sudo apt install -y v4l-utils mesa-vulkan-drivers
-sudo apt remove orca -y
-sync
-sudo reboot
-
-sudo apt install git zip rfkill speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland firefox-esr vsftpd firmware-realtek
+sudo apt install git zip rfkill speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland vlc vlc-plugin-video-output firefox-esr vsftpd pavucontrol
 
 speedtest-cli --secure
 
@@ -153,6 +119,7 @@ cd ../
 
 mpv --hwdec=drm-copy swan.mp4
 ffplay swan.mp4
+cvlc --gl=wgl --glconv=any swan.mp4
 
 Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
 sudo rfkill list

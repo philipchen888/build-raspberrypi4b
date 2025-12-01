@@ -41,7 +41,7 @@ echo $XDG_SESSION_TYPE
 Check audio driver: ( pulseaudio or pipewire )
 pactl info
 
-sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc vlc vlc-plugin-video-output mesa-vulkan-drivers mesa-va-drivers vsftpd
+sudo apt install speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc vlc vlc-plugin-video-output v4l-utils vsftpd
 
 speedtest-cli --secure
 
@@ -64,7 +64,7 @@ cd ../
 ~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -vf scale=1920:1080 -r 15 -c:v libx264 -b:v 2M -c:a copy"
 )
 
-mpv swan.mp4
+mpv --hwdec=auto-copy swan.mp4
 ffplay swan.mp4
 cvlc --gl=wgl --glconv=any swan.mp4
 

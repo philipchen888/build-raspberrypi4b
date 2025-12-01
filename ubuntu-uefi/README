@@ -1,5 +1,8 @@
 Build ubuntu-uefi sdcard image for raspberrypi4b:
 
+Input files ../kernel/linux/tmp/lib/modules/
+            ../kernel/linux/tmp/boot/
+
 cd ~/Downloads
 wget https://cdimage.ubuntu.com/releases/25.10/release/ubuntu-25.10-desktop-arm64.iso
 
@@ -7,8 +10,6 @@ cd ~/build-raspberrypi4b/ubuntu-uefi
 
 Plugin usb3 stick to PC.
 sudo ./eraseusb3stick.sh
-sudo mkfs.ext4 /dev/sda1
-sudo fdisk -l /dev/sda
 Eject usb3 stick from PC.
 
 Plugin sdcard to PC.
@@ -40,9 +41,43 @@ Select install
 Double click Install Ubuntu LTS icon.
 Erase and install Ubuntu.
 Click Install now.
-Contine till finished. Restart.
+Contine till finished. Restart. Remove USB2 SATA ssd. click Enter.
 
-Remove USB2 SATA ssd from rpi4b.
+Power off rpi4b. Plugin usb3 stick to PC.
+sudo fdisk -l /dev/sda
+sudo e2label /dev/sda2 rootfs
+sudo blkid /dev/sda1 ( write down UUID )
+sudo blkid /dev/sda2 ( write down UUID )
+sudo mount /dev/sda2 /mnt
+sudo cp -r ../kernel/linux/tmp/lib/modules/* /mnt/lib/modules
+sudo cp -r ../kernel/linux/tmp/boot/* /mnt/boot
+ls -la /mnt/boot
+sudo touch /mnt/boot/grub/grub.cfg
+sudo vi /mnt/boot/grub/grub.cfg ( delete everything, add
+set timeout=5
+set default="Boot UUID"
+set menu_color_normal=white/black
+set menu_color_highlight=white/green
+
+menuentry "Boot UUID" {
+    search --no-floppy --fs-uuid --set=root b911fd7e-8de2-47cd-a59b-ad92f55fbe59
+    echo    'Loading Linux 6.18.0-rc7-v8+ ...'
+    linux /boot/vmlinuz-6.18.0-rc7-v8+ root=LABEL=rootfs rootwait rw rootdelay=10
+    echo    'Loading initial ramdisk ...'
+    initrd /boot/initrd.img-6.17.0-7-generic
+    devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
+}
+)
+sudo vi /mnt/etc/fstab ( change UUID for /boot/efi )
+sudo cp ./packages/firmware-brcm80211_20250410-2_all.deb /mnt/boot
+sudo cp ./packages/brcmfmac43455-sdio.txt /mnt/lib/firmware/brcm/
+sudo cp ./packages/BCM4345C0.hcd /mnt/lib/firmware/brcm/
+sudo cp ./packages/rtlbt/* /mnt/lib/firmware/rtl_bt/
+ls -la /mnt/lib/firmware/rtl_bt
+sync; sudo umount /mnt;
+Eject usb3 stick from PC.
+
+Plugin usb3 stick and ethernet cable to rpi4b. Power on rpi4b.
 Login:
 Username: linaro
 Password: linaro
@@ -55,83 +90,13 @@ sudo dpkg-reconfigure tzdata
 sudo dpkg-reconfigure locales
 date
 sudo apt update; sudo apt upgrade -y; sudo apt dist-upgrade -y;
+sudo dpkg -i /boot/firmware-brcm80211_20250410-2_all.deb
 sync
 free
-sudo shutdown -h now
-
-Plugin usb3 stick to PC.
-sudo mount /dev/sda2 /mnt
-cp ./packages/firmware-brcm80211_20250410-2_all.deb /mnt/home/linaro/
-sudo cp ./packages/brcmfmac43455-sdio.txt /mnt/lib/firmware/brcm/
-sudo cp ./packages/BCM4345C0.hcd /mnt/lib/firmware/brcm/
-sudo cp ./packages/rtlbt/* /mnt/lib/firmware/rtl_bt/
-sync; sudo umount /mnt;
-Eject usb3 stick from PC.
-
-Plugin usb3 stick to rpi4b. Power on rpi4b.
-uname -a
-lsb_release -a
-sudo dpkg -i firmware-brcm80211_20250410-2_all.deb
-sync
-
-glxinfo | grep OpenGL
-date
-Check if Ubuntu is running UEFI mode:
-ls /sys/firmware/efi
-Check display mode: ( wayland or x11 )
-echo $XDG_SESSION_TYPE
-Check audio driver: ( pulseaudio or pipewire )
-pactl info
-
-sudo apt install speedtest-cli python3-pip python3-setuptools rfkill
-
-speedtest-cli --secure
-
-aplay -l
-
-sudo rfkill list
-
-mainline kernel 6.17.0-6-generic cannot support rpi4b sound, GPU, wifi and bluetooth.
-sudo shutdown -h now
-
----------------------------------------------------------------
-Install vendor kernel 6.18.y
----------------------------------------------------------------
-
-See ../kernel/README to compile vendor's kernel on PC. Then copy the resulting files to the Pi’s /boot and /lib/modules/.
-Plugin usb3 stick to PC.
-sudo cp -r ../kernel/linux/tmp/lib/modules/* /media/$USER/*/lib/modules
-sudo cp -r ../kernel/linux/tmp/boot/* /media/$USER/*/boot
-sync
-Umount, Eject usb3 stick from PC.
-
-Boot rpi4b with old kernel.
-ls -la /boot
-df .
-sudo e2label /dev/sda2 rootfs
-sudo blkid /dev/sda2   ( look for LABEL and UUID )
-
-sudo vi /etc/grub.d/40_custom_uuid ( add
-#!/bin/sh
-exec tail -n +3 $0
-
-menuentry "Boot from UUID" {
-    search --no-floppy --fs-uuid --set=root --hint='usb0,gpt2' --hint='mmcblk0,gpt2' --hint='mmcblk1,gpt2' c6a25e46-e920-4b34-a543-9932b7e92395
-    echo    'Loading Linux 6.18.0-rc5-v8+ ...'
-    linux /boot/vmlinuz-6.18.0-rc5-v8+ root=LABEL=rootfs rootwait rw
-    echo    'Loading initial ramdisk ...'
-    initrd /boot/initrd.img-6.18.0-rc5-v8+
-    devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
-}
+sudo update-initramfs -u -k $(uname -r)
+sudo vi /boot/grub/grub.cfg ( change to:
+   initrd /boot/initrd.img-6.18.0-rc7-v8+
 )
-
-Note: change the above UUID to real UUID like: b3adbe54-ab88-4da5-a9a6-08cf87a09d69
-
-sudo chmod +x /etc/grub.d/40_custom_uuid
-
-sudo vi /etc/default/grub ( change GRUB_DEFAULT=0 to GRUB_DEFAULT="Boot from UUID" )
-sudo update-grub  ( generate grub.cfg )
-sudo update-initramfs -c -k 6.18.0-rc5-v8+
 sync
 sudo reboot
 
@@ -143,6 +108,10 @@ lsb_release -a
 sudo cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
 Check if Ubuntu is running UEFI mode:
 ls /sys/firmware/efi
+Check display mode: ( wayland or x11 )
+echo $XDG_SESSION_TYPE
+Check audio driver: ( pulseaudio or pipewire )
+pactl info
 
 sudo apt install git zip rfkill speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland vlc vlc-plugin-video-output pavucontrol vsftpd
 
@@ -168,7 +137,7 @@ cd ../
 ~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v libx264 -b:v 2M -c:a copy"
 )
 
-mpv --hwdec=auto-copy swan.mp4
+mpv --hwdec=drm-copy swan.mp4
 ffplay swan.mp4
 cvlc --gl=wgl --glconv=any swan.mp4
 
