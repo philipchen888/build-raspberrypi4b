@@ -72,6 +72,14 @@ apt-get update
 apt-get upgrade -y
 apt-get install -y build-essential git wget v4l-utils grub-efi-arm64 e2fsprogs zstd initramfs-tools gdm3
 
+# Install mesa 25
+export DEBIAN_FRONTEND=noninteractive
+echo "deb http://deb.debian.org/debian bookworm-backports main" > /etc/apt/sources.list.d/backports.list
+apt update
+apt install -t bookworm-backports -y --no-install-recommends \
+    mesa-vulkan-drivers mesa-va-drivers libgl1-mesa-dri libglx-mesa0 libegl-mesa0 libgbm1 libgles2-mesa
+ldconfig
+
 ls -la /boot/firmware
 rm -rf /boot/firmware
 mkdir -p /boot/firmware

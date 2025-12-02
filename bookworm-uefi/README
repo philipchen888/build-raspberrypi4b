@@ -49,9 +49,9 @@ set menu_color_normal=white/black
 set menu_color_highlight=white/green
 
 menuentry "Boot UUID" {
-    search --no-floppy --fs-uuid --set=root 9b985242-be19-4c26-9c48-d26045167abe
-    echo    'Loading Linux 6.18.0-rc7-v8+ ...'
-    linux /boot/vmlinuz-6.18.0-rc7-v8+ root=LABEL=rootfs rootwait rw rootdelay=10
+    search --no-floppy --fs-uuid --set=root c9eba6c6-3c77-4f65-9647-269dff0145f8
+    echo    'Loading Linux 6.18.0-v8+ ...'
+    linux /boot/vmlinuz-6.18.0-v8+ root=LABEL=rootfs rootwait rw rootdelay=10
     echo    'Loading initial ramdisk ...'
     initrd /boot/initrd.img-6.1.0-41-arm64
     devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
@@ -80,9 +80,20 @@ lsb_release -a
 sudo apt update; sudo apt upgrade;
 sync
 free
+
+Install mesa 25:
+su -
+export DEBIAN_FRONTEND=noninteractive
+echo "deb http://deb.debian.org/debian bookworm-backports main" > /etc/apt/sources.list.d/backports.list
+apt update
+apt install -t bookworm-backports -y --no-install-recommends mesa-vulkan-drivers mesa-va-drivers libgl1-mesa-dri libglx-mesa0 libegl-mesa0 libgbm1 libgles2-mesa
+ldconfig
+exit
+sync
+free
 sudo update-initramfs -u -k $(uname -r)
 sudo vi /boot/grub/grub.cfg ( change to:
-   initrd /boot/initrd.img-6.18.0-rc7-v8+
+   initrd /boot/initrd.img-6.18.0-v8+
 )
 sync
 sudo reboot
@@ -117,7 +128,7 @@ cd ../
 ~/yt-dlp/yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v libx264 -b:v 2M -c:a copy"
 )
 
-mpv --hwdec=drm-copy swan.mp4
+mpv swan.mp4
 ffplay swan.mp4
 cvlc --gl=wgl --glconv=any swan.mp4
 
