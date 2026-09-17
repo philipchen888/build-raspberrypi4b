@@ -1,0 +1,147 @@
+Build android sdcard image for raspberrypi4b.
+
+   See https://raspberrytips.com/android-raspberry-pi-4/
+   Here are the required steps to install Android on Raspberry Pi:
+
+    Download the LineageOS version for Raspberry Pi from Konstakang.
+    Download Google Apps and save it on a USB memory stick.
+    Flash the custom image to an SD card and start the Raspberry Pi.
+    Reboot in recovery mode to install the Google Apps.
+
+   Download from https://konstakang.com/devices/rpi4/AOSP15
+   AOSP15-20250306-KonstaKANG-rpi4.zip
+   AOSP15-20250306-KonstaKANG-rpi4-ota.zip
+   unzip AOSP15-20250306-KonstaKANG-rpi4.zip
+
+   sudo dd if=./AOSP15-20250306-KonstaKANG-rpi4.img of=/dev/sda bs=4096 conv=notrunc,fsync
+   Eject sdcard, plugin sdcard to rpi4b.
+   After setting up android, turn on developer mode.
+   Settings -> About tablet -> click build number 7 times
+   Settings -> System -> Raspberry Pi settings -> ADB ( turn on ) 
+   Shutdown android ( click F5 ).
+   Download Google Play Store from https://sourceforge.net/projects/nikgapps/
+   wget https://sourceforge.net/projects/nikgapps/files/Releases/Android-15/27-Jan-2025/NikGapps-basic-arm64-15-20250127-signed.zip/download
+   mv download NikGapps-Basic-arm64-15-20250127-signed.zip
+   Plugin USB memory stick to host PC.
+   sudo mount /dev/sda1 /mnt
+   cp ~/Downloads/AOSP15-20250306-KonstaKANG-rpi4-ota.zip /mnt
+   cp ~/Downloads/NikGapps-Basic-arm64-15-20250127-signed.zip /mnt
+   sync
+   sudo umount /mnt
+   Eject USB memory stick, and plug it to rpi4b.
+   Boot to TWRP recovery: Settings -> System -> Raspberry Pi settings -> Reboot to recovery -> F5 ( shutdown ) -> power on.
+   Install AOSP15-20241210-KonstaKANG-rpi4-ota.zip from your selected storage:
+   Install -> Select Storage -> USB -> OK -> AOSP15-20250306-KonstaKANG-rpi4-ota.zip -> swipe -> back -> Install NikGapps-Basic-arm64-15-20250127-signed.zip -> swipe -> Reboot -> system
+
+   Enable sound: Settings -> System -> Raspberry Pi settings -> Audio device (HDMI0).
+
+   When run Google Play Store, Got the device is not certified to run Google apps.
+   adb connect 192.168.86.xxx:xxxxx
+   adb root
+   adb shell 'sqlite3 /data/user/$(cmd activity get-current-user)/*/*/gservices.db "select * from main where name = \"android_id\";"'
+   This will get device gsf id
+   Open https://google.com/android/uncertified on your Raspberry Pi and paste the GSF code. After that, click on “Register“. Shutdown android ( click F5 ).
+   Wait for 30 minutes. Power on.
+   Open Google Play Store -> sign in. Install YouTube, Solitaire etc.
+
+
+Plugin sdcard to rpi4b.
+After setting up android, turn on developer mode.
+Settings -> About tablet -> click build number 7 times
+Settings -> System -> Raspberry Pi settings -> ADB ( turn on )
+F5 -> Power off. Power on.
+
+adb connect 192.168.86.xxx:xxxxx
+adb tcpip 5555
+adb connect 192.168.86.xxx:5555
+adb devices -l   ( keep runing adb devices -l till only one connected )
+adb shell getprop service.adb.tcp.port  ( should return 5555 )
+adb root
+adb shell
+du -h /system
+mount -o rw,remount /
+exit
+
+To install apks:
+adb push helloworld.apk /sdcard
+adb push happybirthday.apk /sdcard
+adb push diceroller.apk /sdcard
+adb push drawing.apk /sdcard
+adb push drawshape.apk /sdcard
+adb push kaleidoscope.apk /sdcard
+adb push myanalogclock.apk /sdcard
+adb push randomsong.apk /sdcard
+adb shell
+cd /system/priv-app
+ln -s /sdcard/helloworld.apk .
+ln -s /sdcard/happybirthday.apk .
+ln -s /sdcard/diceroller.apk .
+ln -s /sdcard/drawing.apk .
+ln -s /sdcard/drawshape.apk .
+ln -s /sdcard/kaleidoscope.apk .
+ln -s /sdcard/myanalogclock.apk .
+ln -s /sdcard/randomsong.apk .
+exit
+adb install -r helloworld.apk
+adb install -r happybirthday.apk
+adb install -r diceroller.apk
+adb install -r drawing.apk
+adb install -r drawshape.apk
+adb install -r kaleidoscope.apk
+adb install -r myanalogclock.apk
+adb install -r randomsong.apk
+adb shell
+mount -o ro,remount /
+exit
+
+To uninstall apks:
+adb uninstall com.example.helloworld
+adb uninstall com.example.happybirthday
+adb uninstall com.example.diceroller
+adb uninstall com.example.drawing
+adb uninstall com.example.drawshape
+adb uninstall com.example.kaleidoscope
+adb uninstall com.example.myanalogclock
+adb uninstall com.example.randomsong
+
+-----------------------------------------------------
+
+Compile android 15 from source:  ( It may take 8 hours )
+
+sudo apt remove repo
+wget 'https://storage.googleapis.com/git-repo-downloads/repo' -P /tmp/
+sudo cp /tmp/repo /usr/local/bin/repo
+sudo chmod +x /usr/local/bin/repo
+
+Need to increase swap to 48GB if DDR ram size is 16 GB. ( DDR ram + swap = 64 GB ) 
+See https://stackoverflow.com/questions/77278089/aosp-14-build-error-100-1-1-analyzing-android-bp-files-and-generating-ninja-f
+grep Swap /proc/meminfo
+# Turn swap off
+sudo swapoff -a
+# Create an empty swapfile
+sudo dd if=/dev/zero of=/swapfile bs=1G count=48
+sync
+sudo chmod 0600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+grep Swap /proc/meminfo
+sudo reboot
+
+See https://stackoverflow.com/questions/76055884/how-to-build-full-android-aosp-images-for-raspberry-pi-4
+See https://github.com/raspberry-vanilla/android_local_manifest/tree/android-15.0
+
+sudo apt-get install bc coreutils dosfstools e2fsprogs fdisk kpartx mtools ninja-build pkg-config python3-pip meson python3-mako python3-jinja2 python3-ply python3-jinja2 python3-yaml
+
+mkdir android15; cd android15; 
+repo init -u https://android.googlesource.com/platform/manifest -b android-15.0.0_r20 --depth=1
+curl -o .repo/local_manifests/manifest_brcm_rpi.xml -L https://raw.githubusercontent.com/raspberry-vanilla/android_local_manifest/android-15.0/manifest_brcm_rpi.xml --create-dirs
+curl -o .repo/local_manifests/remove_projects.xml -L https://raw.githubusercontent.com/raspberry-vanilla/android_local_manifest/android-15.0/remove_projects.xml
+repo sync
+repo sync -j1 --fail-fast
+. build/envsetup.sh
+lunch aosp_rpi4-bp1a-userdebug
+make bootimage systemimage vendorimage -j$(nproc)
+./rpi4-mkimg.sh
+
+The result is in out/target/product/rpi4/RaspberryVanillaAOSP15-20250314-rpi4.img
+sudo dd if=./out/target/product/rpi4/RaspberryVanillaAOSP15-20250314-rpi4.img of=/dev/sda bs=4096 conv=notrunc,fsync

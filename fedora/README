@@ -1,0 +1,136 @@
+Build fedora sdcard image for raspberrypi4b:
+
+Input files: ../kernel/linux/tmp/lib/modules
+             ../kernel/linux/arch/arm64/boot/Image
+             ../kernel/linux/arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dtb
+
+see https://docs.fedoraproject.org/en-US/quick-docs/raspberry-pi/#_installing_fedora_on_a_raspberry_pi_for_linux_users
+
+cd ~/Downloads
+wget https://archives.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/aarch64/images/Fedora-Workstation-Disk-44-1.7.aarch64.raw.xz
+
+cd ~/build-raspberrypi4b/fedora
+Plugin sdcard to PC.
+sudo ./mkuefiboot.sh
+sudo mkfs.vfat /dev/sda1
+sudo fdisk -l /dev/sda
+sudo mount /dev/sda1 /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware.zip -o/mnt && sync && sudo umount /mnt
+Eject sdcard from PC.
+
+Plugin usb3 stick to PC.
+sudo ./mksdcardimg.sh
+sudo mkfs.vfat /dev/sda1
+sudo mkfs.ext4 /dev/sda2
+sudo mkfs.ext4 /dev/sda3
+sudo fdisk -l /dev/sda
+xzcat ~/Downloads/Fedora-Workstation-Disk-44-1.7.aarch64.raw.xz | sudo dd status=progress bs=4096 of=/dev/sda skip=4352 seek=4352 conv=notrunc,fsync 
+sudo mount /dev/sda1 /mnt
+sudo vi /mnt/config.txt ( delete everything from [pi3] to end of file, add 
+disable_overscan=1
+arm_64bit=1
+dtparam=audio=on
+enable_uart=1
+dtoverlay=vc4-kms-v3d,cma-512
+dtparam=i2c_arm=on
+dtparam=spi=on
+dtoverlay=miniuart-bt
+usb_max_current_enable=1
+[pi4]
+dtoverlay=upstream-pi4
+dtoverlay=vc4-kms-v3d-pi4,cma-256
+max_framebuffers=2
+[pi5]
+dtoverlay=vc4-kms-v3d-pi5,cma-512
+max_framebuffers=2
+)
+sync; sudo umount /mnt;
+Eject usb3 stick from PC.
+
+Plugin sdcard and usb3 stick to rpi4b. Power on rpi4b.
+Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI.
+Setup wifi. Disable power saving and screen saver.
+sudo systemctl start sshd.service
+sudo systemctl enable sshd.service
+sudo ifconfig
+sudo btrfs filesystem resize max /
+df .
+uname -a
+cat /etc/fedora-release
+sudo dnf install kernel-devel-6.19.10-300.fc44.aarch64
+rpm -qa | grep -i kernel
+add: exclude=kernel* to /etc/dnf/dnf.conf
+sudo dnf update
+sudo grub2-editenv create
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+sudo sudo grubby --set-default /boot/vmlinuz-6.19.10-300.fc44.aarch64
+sudo grubby --default-kernel
+sudo grubby --info DEFAULT
+sudo grubby --info /boot/vmlinuz-6.19.10-300.fc44.aarch64
+sudo ls -l /boot/loader/entries
+sync
+free
+sudo shutdown -h now
+
+Install vendor kernel:
+Plugin usb3 stick to PC.
+sudo mount /dev/sda2 /mnt
+mkdir tmp; cd tmp;
+sudo zstd -dc /mnt/initramfs-6.19.10-300.fc44.aarch64.img | sudo cpio -idmv
+sudo cp -r ../../kernel/linux/tmp/lib/modules/* lib/modules/
+find . | cpio -o -H newc | zstd -10 -o ../initrd-patched.img
+cd ../
+sudo cp ../kernel/linux/arch/arm64/boot/Image /mnt
+sudo cp ../kernel/linux/arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dtb /mnt
+sudo cp initrd-patched.img /mnt/initrd-patched.img
+sudo chmod 755 /mnt/loader/entries
+sudo chmod 755 /mnt/loader/entries/*
+sudo vi /mnt/loader/entries/*aarch64.conf ( change to
+linux /Image
+initrd /initrd-patched.img
+devicetree /bcm2711-rpi-4-b.dtb
+delete options
+)
+sync; sudo umount /mnt;
+sudo mount /dev/sda3 /mnt
+sudo cp -r ../kernel/linux/tmp/lib/modules/* /mnt/root/lib/modules
+sudo cp ./packages/brcmfmac43455* /mnt/root/lib/firmware/brcm/
+sudo cp ./packages/BCM4345C0* /mnt/root/lib/firmware/brcm/
+sudo mkdir -p /mnt/root/lib/firmware/rtl_bt
+sudo cp ./packages/rtl* /mnt/root/lib/firmware/rtl_bt/
+ls -la /mnt/root/lib/firmware/rtl_bt
+sync; sudo umount /mnt;
+Eject usb3 stick from PC.
+
+Plugin usb3 stick and ethernet cable to rpi4b. Power on rpi4b.
+date
+uname -a
+sudo dnf install mpv rfkill speedtest-cli glmark2-es2-wayland vsftpd pavucontrol vlc
+
+speedtest-cli --secure
+glmark2-es2-wayland
+
+aplay -l
+pavucontrol ( select hdmi0 as default )
+
+firefox -> youtube.com -> search YmDNhi07_Ho
+
+sudo dnf install pandoc v4l-utils
+
+git clone https://github.com/yt-dlp/yt-dlp.git
+cd yt-dlp
+make
+cd ../
+sudo cp ~/yt-dlp/yt-dlp /usr/local/bin
+v4l2-ctl --list-devices  ( look for bcm2835-codec-decode (platform:bcm2835-codec) )
+mpv --hwdec=help         ( look for v4l2m2m-copy )
+ffmpeg -hide_banner -encoders | grep v4l2  ( look for h264_v4l2m2m )
+yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -r 15 -c:v h264_v4l2m2m -b:v 2M -c:a copy"
+
+mpv --hwdec=v4l2m2m swan.mp4
+ffplay -autoexit swan.mp4
+cvlc --gl=wgl --glconv=any swan.mp4
+
+Plugin ASUS BT500 bluetooth usb dongle to rpi4b.
+sudo rfkill list
+bluetoothctl -> scan on -> scan off -> exit

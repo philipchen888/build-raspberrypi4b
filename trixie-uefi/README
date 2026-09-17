@@ -1,0 +1,131 @@
+Build trixie-uefi sdcard image for raspberrypi4b:
+
+Input files ../kernel/linux/tmp/lib/modules/
+            ../kernel/linux/tmp/boot/
+
+cd ~/Downloads
+wget https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/debian-13.6.0-arm64-netinst.iso
+
+cd ~/build-raspberrypi4b/trixie-uefi
+
+Plugin usb3 stick to PC.
+sudo ./mksdcardimg.sh
+sudo mkfs.vfat /dev/sda1
+sudo fdisk -l /dev/sda
+sudo mount /dev/sda1 /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware.zip -o/mnt && sync
+sudo 7z x ~/Downloads/debian-13.6.0-arm64-netinst.iso -o/mnt && sync && sudo umount /mnt
+Eject usb3 stick from PC.
+
+------------------------------------------------------------------------
+Install trixie to usb3 stick.
+NOTE: To minimize EMI interference, put usb3 stick to rpi4b top USB3 socket,
+      Put wifi usb dongle to rpi4b top USB2 socket, put keyboard mouse to rpi4b bottom USB2 socket with USB2 extention cable.
+------------------------------------------------------------------------
+
+Plugin usb3 stick to rpi4b. Power on rpi4b.
+Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
+Select install
+loading missing firmware? No
+User name: linaro
+Manual partition, select free, Automatic, All, Finish, Yes
+Select debian desktop and gnome in addition to ssh and standard system utilities.
+
+Plugin usb3 stick to PC.
+sudo fdisk -l /dev/sda
+sudo e2label /dev/sda3 rootfs
+sudo blkid /dev/sda1 ( write down UUID )
+sudo blkid /dev/sda3 ( write down UUID )
+sudo mount /dev/sda3 /mnt
+sudo cp -r ../kernel/linux/tmp/lib/modules/* /mnt/lib/modules
+sudo cp -r ../kernel/linux/tmp/boot/* /mnt/boot
+ls -la /mnt/boot
+sudo touch /mnt/boot/grub/grub.cfg
+sudo vi /mnt/boot/grub/grub.cfg ( delete everything, add
+set timeout=5
+set default="Boot UUID"
+set menu_color_normal=white/black
+set menu_color_highlight=white/green
+
+menuentry "Boot UUID" {
+    search --no-floppy --fs-uuid --set=root 07ba8210-1fa3-49b9-aed9-08418969c7e2
+    echo    'Loading Linux 7.2.5-v8+ ...'
+    linux /boot/vmlinuz-7.2.5-v8+ root=LABEL=rootfs rootwait rw rootdelay=10 video=HDMI-A-1:1920x1080@60 console=serial0,115200 console=tty1
+    echo    'Loading initial ramdisk ...'
+    initrd /boot/initrd.img-6.12.107+deb13-arm64
+    devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
+}
+)
+Note: update above UUID, vmlinuz and devicetree accordingly.
+sudo vi /mnt/etc/fstab ( change UUID for /boot/efi )
+sudo cp ./packages/brcmfmac43455* /mnt/lib/firmware/brcm/
+sudo cp ./packages/BCM4345C0* /mnt/lib/firmware/brcm/
+sudo mkdir -p /mnt/lib/firmware/rtl_bt
+sudo cp ./packages/rtl* /mnt/lib/firmware/rtl_bt/
+ls -la /mnt/lib/firmware/rtl_bt
+sync; sudo umount /mnt;
+Eject usb3 stick from PC.
+
+Plugin usb3 stick to rpi4b. Power on rpi4b.
+Forget wifi. Setup wifi. Disable power saving, auto suspend and screen saver.
+su -
+usermod -aG adm,sudo,video linaro
+sync
+reboot
+
+sudo apt install openssh-server net-tools pulseaudio-utils
+sudo ifconfig
+uname -a
+lsb_release -a
+sudo apt update; sudo apt upgrade -y;
+sync
+free
+sudo update-initramfs -u -k $(uname -r)
+sudo vi /boot/grub/grub.cfg ( change to:
+initrd /boot/initrd.img-7.2.5-v8+
+)
+sync
+sudo reboot
+
+uname -a
+lsb_release -a
+Check CPU speed:
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+
+Check if Debian is running UEFI mode:
+ls /sys/firmware/efi
+Check display mode: ( wayland or x11 )
+echo $XDG_SESSION_TYPE
+Check audio driver: ( pulseaudio or pipewire )
+pactl info
+
+sudo apt install git zip rfkill speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc firefox-esr vlc vlc-plugin-video-output vsftpd pavucontrol v4l-utils
+
+speedtest-cli --secure
+
+glmark2-es2-wayland
+
+aplay -l
+pavucontrol  ( select hdmi as default )
+
+firefox -> youtube.com -> search YmDNhi07_Ho
+
+git clone https://github.com/yt-dlp/yt-dlp.git
+cd yt-dlp
+make
+cd ../
+sudo cp ~/yt-dlp/yt-dlp /usr/local/bin
+v4l2-ctl --list-devices  ( look for bcm2835-codec-decode (platform:bcm2835-codec) )
+mpv --hwdec=help         ( look for v4l2m2m-copy )
+ffmpeg -hide_banner -encoders | grep v4l2  ( look for h264_v4l2m2m )
+yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
+
+mpv --hwdec=v4l2m2m swan.mp4
+ffplay -autoexit swan.mp4
+cvlc --gl=wgl --glconv=any swan.mp4
+
+Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
+sudo rfkill list
+hciconfig hci0
+hcitool dev
+hciconfig -a

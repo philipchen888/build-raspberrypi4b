@@ -1,0 +1,170 @@
+Build ubuntu-uefi sdcard image for raspberrypi4b:
+
+Note: need to use external fan to cool CPU for installing ubuntu iso.
+
+Input files ../kernel/linux/tmp/lib/modules/
+            ../kernel/linux/tmp/boot/
+
+cd ~/Downloads
+wget https://cdimage.ubuntu.com/ubuntu/releases/26.04/release/ubuntu-26.04-desktop-arm64.iso
+
+cd ~/build-raspberrypi4b/ubuntu-uefi
+
+Plugin usb3 stick to PC.
+sudo ./eraseusb3stick.sh
+Eject usb3 stick from PC.
+
+Plugin USB2 SATA ssd to PC.
+sudo ./mksdcardimg.sh
+sudo mkfs.vfat /dev/sda1
+sudo fdisk -l /dev/sda
+sudo mount /dev/sda1 /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware.zip -o/mnt && sync
+sudo 7z x ~/Downloads/ubuntu-26.04-desktop-arm64.iso -o/mnt && sync && sudo umount /mnt
+Eject USB2 SATA ssd from PC.
+
+------------------------------------------------------------------------
+Install ubuntu from USB2 SATA ssd ubuntu iso to usb3 stick.
+NOTE: To minimize EMI interference, put usb3 stick to rpi4b top USB3 socket,
+      Put keyboard mouse to rpi4b bottom USB2 socket with USB2 extention cable.
+      Put USB2 SATA ssd to rpi4b bottom USB3 socket.
+------------------------------------------------------------------------
+
+Plugin sdcard, usb3 stick, USB2 SATA ssd and wifi usb dongle to rpi4b. Power on rpi4b.
+Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
+Select install
+Double click Install Ubuntu LTS icon.
+Erase and install Ubuntu.
+Click Install now.
+Contine till finished. Restart. Remove USB2 SATA ssd from rpi4b. click enter. Power down rpi4b.
+
+Plugin usb3 stick to PC.
+sudo fdisk -l /dev/sda
+sudo mount /dev/sda1 /mnt
+sudo 7z x ~/Downloads/RPi4_UEFI_Firmware.zip -o/mnt && sync && sudo umount /mnt
+sudo e2label /dev/sda2 rootfs
+sudo blkid /dev/sda1 ( write down UUID )
+sudo blkid /dev/sda2 ( write down UUID )
+sudo mount /dev/sda2 /mnt
+sudo cp -r ../kernel/linux/tmp/lib/modules/* /mnt/lib/modules
+sudo cp -r ../kernel/linux/tmp/boot/* /mnt/boot
+ls -la /mnt/boot
+sudo touch /mnt/boot/grub/grub.cfg
+sudo vi /mnt/boot/grub/grub.cfg ( delete everything, add
+set timeout=5
+set default="Boot UUID"
+set menu_color_normal=white/black
+set menu_color_highlight=white/green
+
+menuentry "Boot UUID" {
+    search --no-floppy --fs-uuid --set=root 00cce10e-bb61-4d1b-a89f-1634fad70292
+    echo    'Loading Linux 7.2.5-v8+ ...'
+    linux /boot/vmlinuz-7.2.5-v8+ root=LABEL=rootfs rootwait rw rootdelay=10 video=HDMI-A-1:1920x1080@60 console=serial0,115200 console=tty1
+    echo    'Loading initial ramdisk ...'
+    initrd /boot/initrd.img-7.0.0-31-generic
+    devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
+}
+)
+Note: update above UUID, vmlinuz and devicetree accordingly.
+sudo vi /mnt/etc/fstab ( change UUID for /boot/efi )
+sudo cp ./packages/firmware-brcm80211_20240909-2_all.deb /mnt/boot
+sudo cp ./packages/brcmfmac43455* /mnt/lib/firmware/brcm/
+sudo cp ./packages/BCM4345C0* /mnt/lib/firmware/brcm/
+sudo mkdir -p /mnt/lib/firmware/rtl_bt
+sudo cp ./packages/rtl* /mnt/lib/firmware/rtl_bt/
+ls -la /mnt/lib/firmware/rtl_bt
+sync; sudo umount /mnt;
+Eject usb3 stick from PC.
+
+Plugin usb3 stick and ethernet cable  to rpi4b, Remove wifi usb dongle from rpi4b. Power on rpi4b.
+Esc -> Device Manager -> Rpi -> Advanced -> 3GB ( disable ) -> F10 -> Boot Manager -> first UEFI or SDCARD.
+Login:
+Username: linaro
+Password: linaro
+Disable power saving, auto suspend and screen saver.
+sudo apt install net-tools openssh-server pulseaudio-utils
+sudo ifconfig
+uname -a
+lsb_release -a
+sudo dpkg-reconfigure tzdata
+sudo dpkg-reconfigure locales
+date
+sudo apt update
+apt-mark showmanual | grep -E 'linux|kernel|flash'
+apt-cache depends linux-generic-hwe-24.04
+sudo apt remove linux-generic-hwe-24.04 linux-generic-hwe-26.04 flash-kernel
+sudo dpkg --configure -a
+sudo apt -f install
+sudo apt autoremove
+sudo apt update; sudo apt upgrade -y; sudo apt dist-upgrade -y;
+sudo dpkg -i /boot/firmware-brcm80211_20240909-2_all.deb
+sync
+free
+sudo update-initramfs -u -k $(uname -r)
+ls -la /boot
+sudo vi /boot/grub/grub.cfg ( delete everything, add
+set timeout=5
+set default="Boot UUID"
+set menu_color_normal=white/black
+set menu_color_highlight=white/green
+
+menuentry "Boot UUID" {
+    search --no-floppy --fs-uuid --set=root 00cce10e-bb61-4d1b-a89f-1634fad70292
+    echo    'Loading Linux 7.2.5-v8+ ...'
+    linux /boot/vmlinuz-7.2.5-v8+ root=LABEL=rootfs rootwait rw rootdelay=10 video=HDMI-A-1:1920x1080@60 console=serial0,115200 console=tty1
+    echo    'Loading initial ramdisk ...'
+    initrd /boot/initrd.img-7.2.5-v8+
+    devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
+}
+)
+Note: update above UUID, vmlinuz, initrd and devicetree accordingly.
+sync
+sudo shutdown -h now
+
+Remove ethernet cable from rpi4b. Power on rpi4b.
+Forget wifi. Setup wifi.
+uname -a
+lsb_release -a
+sudo apt update; sudo apt upgrade -y; sudo apt dist-upgrade -y;
+Check CPU speed:
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+
+glxinfo | grep OpenGL
+date
+Check if Ubuntu is running UEFI mode:
+ls /sys/firmware/efi
+Check display mode: ( wayland or x11 )
+echo $XDG_SESSION_TYPE
+Check audio driver: ( pulseaudio or pipewire )
+pactl info
+
+sudo apt install git zip rfkill speedtest-cli python3-pip python3-setuptools ffmpeg mpv glmark2-es2-wayland pandoc vlc vlc-plugin-video-output vsftpd pavucontrol v4l-utils
+
+speedtest-cli --secure
+
+glmark2-es2-wayland
+
+aplay -l
+pavucontrol  ( select hdmi as default )
+
+firefox -> youtube.com -> search YmDNhi07_Ho
+
+git clone https://github.com/yt-dlp/yt-dlp.git
+cd yt-dlp
+make
+cd ../
+sudo cp ~/yt-dlp/yt-dlp /usr/local/bin
+v4l2-ctl --list-devices  ( look for bcm2835-codec-decode (platform:bcm2835-codec) )
+mpv --hwdec=help         ( look for v4l2m2m-copy )
+ffmpeg -hide_banner -encoders | grep v4l2  ( look for h264_v4l2m2m )
+yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
+
+mpv --hwdec=v4l2m2m swan.mp4
+ffplay -autoexit swan.mp4
+cvlc --gl=wgl --glconv=any swan.mp4
+
+Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
+sudo rfkill list
+hciconfig hci0
+hcitool dev
+hciconfig -a
