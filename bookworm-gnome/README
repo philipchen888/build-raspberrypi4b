@@ -25,6 +25,7 @@ sudo dpkg-reconfigure locales
 date
 sudo apt update
 sudo apt upgrade
+sudo apt autoremove
 sync
 free
 sudo shutdown -h now
@@ -64,9 +65,8 @@ mpv --hwdec=help         ( look for v4l2m2m-copy )
 ffmpeg -hide_banner -encoders | grep v4l2  ( look for h264_v4l2m2m )
 yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
 
-mpv --hwdec=v4l2m2m swan.mp4
+mpv swan.mp4
 ffplay -autoexit swan.mp4
-cvlc --gl=wgl --glconv=any swan.mp4
 
 Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
 sudo rfkill list

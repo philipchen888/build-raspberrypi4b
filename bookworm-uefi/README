@@ -49,8 +49,8 @@ set menu_color_highlight=white/green
 
 menuentry "Boot UUID" {
     search --no-floppy --fs-uuid --set=root 8e46ad2f-826d-4c0d-8731-b9ae357ec6c7
-    echo    'Loading Linux 7.2.5-v8+ ...'
-    linux /boot/vmlinuz-7.2.5-v8+ root=LABEL=rootfs rootwait rw rootdelay=10 video=HDMI-A-1:1920x1080@60 console=serial0,115200 console=tty1
+    echo    'Loading Linux 7.2.6-v8+ ...'
+    linux /boot/vmlinuz-7.2.6-v8+ root=LABEL=rootfs rootwait rw rootdelay=10 video=HDMI-A-1:1920x1080@60 console=serial0,115200 console=tty1
     echo    'Loading initial ramdisk ...'
     initrd /boot/initrd.img-6.1.0-53-arm64    
     devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
@@ -85,7 +85,7 @@ Install mesa 25:
 su -
 export DEBIAN_FRONTEND=noninteractive
 echo "deb http://deb.debian.org/debian bookworm-backports main" > /etc/apt/sources.list.d/backports.list
-apt update
+apt update; apt upgrade -y;
 apt install -t bookworm-backports -y --no-install-recommends mesa-vulkan-drivers mesa-va-drivers libgl1-mesa-dri libglx-mesa0 libegl-mesa0 libgbm1 libgles2-mesa
 ldconfig
 exit
@@ -93,7 +93,7 @@ sync
 free
 sudo update-initramfs -u -k $(uname -r)
 sudo vi /boot/grub/grub.cfg ( change to:
-initrd /boot/initrd.img-7.2.5-v8+
+initrd /boot/initrd.img-7.2.6-v8+
 )
 sync
 sudo reboot
@@ -131,7 +131,7 @@ mpv --hwdec=help         ( look for v4l2m2m-copy )
 ffmpeg -hide_banner -encoders | grep v4l2  ( look for h264_v4l2m2m )
 yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
 
-mpv --hwdec=v4l2m2m swan.mp4
+mpv --vo=gpu --hwdec=v4l2m2m swan.mp4
 ffplay -autoexit swan.mp4
 cvlc --gl=wgl --glconv=any swan.mp4
 

@@ -67,7 +67,7 @@ mpv --hwdec=help         ( look for v4l2m2m-copy )
 ffmpeg -hide_banner -encoders | grep v4l2  ( look for h264_v4l2m2m )
 yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -r 15 -c:v h264_v4l2m2m -b:v 2M -c:a copy"
 
-mpv --hwdec=v4l2m2m swan.mp4
+mpv --vo=gpu --hwdec=v4l2m2m swan.mp4
 ffplay -autoexit swan.mp4
 cvlc --gl=wgl --glconv=any swan.mp4
 
