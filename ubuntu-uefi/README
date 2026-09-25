@@ -58,10 +58,10 @@ set menu_color_highlight=white/green
 
 menuentry "Boot UUID" {
     search --no-floppy --fs-uuid --set=root 00cce10e-bb61-4d1b-a89f-1634fad70292
-    echo    'Loading Linux 7.2.6-v8+ ...'
-    linux /boot/vmlinuz-7.2.6-v8+ root=LABEL=rootfs rootwait rw rootdelay=10 video=HDMI-A-1:1920x1080@60 console=serial0,115200 console=tty1
+    echo    'Loading Linux 7.2.7-v8+ ...'
+    linux /boot/vmlinuz-7.2.7-v8+ root=LABEL=rootfs rootwait rw rootdelay=10 video=HDMI-A-1:1920x1080@60 console=serial0,115200 console=tty1
     echo    'Loading initial ramdisk ...'
-    initrd /boot/initrd.img-7.0.0-31-generic
+    initrd /boot/initrd.img-7.0.0-34-generic
     devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
 }
 )
@@ -110,10 +110,10 @@ set menu_color_highlight=white/green
 
 menuentry "Boot UUID" {
     search --no-floppy --fs-uuid --set=root 00cce10e-bb61-4d1b-a89f-1634fad70292
-    echo    'Loading Linux 7.2.6-v8+ ...'
-    linux /boot/vmlinuz-7.2.6-v8+ root=LABEL=rootfs rootwait rw rootdelay=10 video=HDMI-A-1:1920x1080@60 console=serial0,115200 console=tty1
+    echo    'Loading Linux 7.2.7-v8+ ...'
+    linux /boot/vmlinuz-7.2.7-v8+ root=LABEL=rootfs rootwait rw rootdelay=10 video=HDMI-A-1:1920x1080@60 console=serial0,115200 console=tty1
     echo    'Loading initial ramdisk ...'
-    initrd /boot/initrd.img-7.2.6-v8+
+    initrd /boot/initrd.img-7.2.7-v8+
     devicetree /boot/dtb/broadcom/bcm2711-rpi-4-b.dtb
 }
 )
@@ -159,7 +159,7 @@ mpv --hwdec=help         ( look for v4l2m2m-copy )
 ffmpeg -hide_banner -encoders | grep v4l2  ( look for h264_v4l2m2m )
 yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
 
-mpv --vo=gpu --hwdec=v4l2m2m swan.mp4
+mpv swan.mp4
 ffplay -autoexit swan.mp4
 cvlc --gl=wgl --glconv=any swan.mp4
 

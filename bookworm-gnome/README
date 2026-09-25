@@ -67,6 +67,7 @@ yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]
 
 mpv swan.mp4
 ffplay -autoexit swan.mp4
+cvlc -gl=wgl --glconv=any swan.mp4
 
 Plugin ASUS USB-BT500 bluetooth usb dongle to rpi4b.
 sudo rfkill list

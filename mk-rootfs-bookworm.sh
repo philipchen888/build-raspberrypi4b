@@ -34,8 +34,8 @@ export KERNEL_VERSION=$(ls $TARGET_ROOTFS_DIR/boot/vmlinuz-* 2>/dev/null | sed '
 echo $KERNEL_VERSION
 sudo sed -e "s/6.19.0-v8-16k+/$KERNEL_VERSION/g" < ../kernel/patches/40_custom_uuid | sudo tee $TARGET_ROOTFS_DIR/boot/40_custom_uuid > /dev/null
 cat $TARGET_ROOTFS_DIR/boot/40_custom_uuid
-echo "deb [signed-by=/etc/apt/keyrings/raspberrypi-archive-keyring.gpg] http://archive.raspberrypi.com/debian/ bookworm main" | sudo tee $TARGET_ROOTFS_DIR/etc/apt/sources.list.d/raspi.list
-sudo curl -fSsL https://archive.raspberrypi.com/debian/raspberrypi.gpg.key | sudo gpg --dearmor -o $TARGET_ROOTFS_DIR/etc/apt/keyrings/raspberrypi-archive-keyring.gpg
+# echo "deb [signed-by=/etc/apt/keyrings/raspberrypi-archive-keyring.gpg] http://archive.raspberrypi.com/debian/ bookworm main" | sudo tee $TARGET_ROOTFS_DIR/etc/apt/sources.list.d/raspi.list
+# sudo curl -fSsL https://archive.raspberrypi.com/debian/raspberrypi.gpg.key | sudo gpg --dearmor -o $TARGET_ROOTFS_DIR/etc/apt/keyrings/raspberrypi-archive-keyring.gpg
 
 # overlay folder
 sudo cp -rf ../overlay/* $TARGET_ROOTFS_DIR/

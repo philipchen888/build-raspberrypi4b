@@ -20,8 +20,8 @@ Steps to build raspberrypi4b sdcard image:
    sudo update-binfmts --enable
 
    cd ~/Downloads
-   wget https://github.com/pftf/RPi4/releases/download/v1.50/RPi4_UEFI_Firmware_v1.50.zip
-   mv RPi4_UEFI_Firmware_v1.50.zip RPi4_UEFI_Firmware.zip
+   wget https://github.com/pftf/RPi4/releases/download/v1.53/RPi4_UEFI_Firmware_v1.53.zip
+   mv RPi4_UEFI_Firmware_v1.53.zip RPi4_UEFI_Firmware.zip
 
 2. Install live-build:
    sudo apt-get install debootstrap debhelper kpartx gdisk devscripts isolinux po4a live-build

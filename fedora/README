@@ -89,8 +89,9 @@ sudo vi /mnt/loader/entries/*aarch64.conf ( change to
 linux /Image
 initrd /initrd-patched.img
 devicetree /bcm2711-rpi-4-b.dtb
-delete options
+options root=UUID=12345678-abcd-1234-abcd-123456789abc ro rootflags=subvol=root rhgb
 )
+Note: change above UUID
 sync; sudo umount /mnt;
 sudo mount /dev/sda3 /mnt
 sudo cp -r ../kernel/linux/tmp/lib/modules/* /mnt/root/lib/modules
@@ -105,7 +106,7 @@ Eject usb3 stick from PC.
 Plugin usb3 stick and ethernet cable to rpi4b. Power on rpi4b.
 date
 uname -a
-sudo dnf install mpv rfkill speedtest-cli glmark2-es2-wayland vsftpd pavucontrol vlc
+sudo dnf install mpv rfkill speedtest-cli glmark2-es2-wayland vsftpd pavucontrol vlc pandoc v4l-utils
 
 speedtest-cli --secure
 glmark2-es2-wayland
@@ -115,8 +116,6 @@ pavucontrol ( select hdmi0 as default )
 
 firefox -> youtube.com -> search YmDNhi07_Ho
 
-sudo dnf install pandoc v4l-utils
-
 git clone https://github.com/yt-dlp/yt-dlp.git
 cd yt-dlp
 make
@@ -125,11 +124,10 @@ sudo cp ~/yt-dlp/yt-dlp /usr/local/bin
 v4l2-ctl --list-devices  ( look for bcm2835-codec-decode (platform:bcm2835-codec) )
 mpv --hwdec=help         ( look for v4l2m2m-copy )
 ffmpeg -hide_banner -encoders | grep v4l2  ( look for h264_v4l2m2m )
-yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -r 15 -c:v h264_v4l2m2m -b:v 2M -c:a copy"
+yt-dlp -f 'bestvideo[ext=mp4][protocol=https]+bestaudio[ext=m4a][protocol=https]' 3qrKjywjo7Q -o swan.mp4 --postprocessor-args " -c:v h264_v4l2m2m -b:v 2M -c:a copy"
 
-mpv --vo=gpu --hwdec=v4l2m2m swan.mp4
+mpv swan.mp4
 ffplay -autoexit swan.mp4
-cvlc --gl=wgl --glconv=any swan.mp4
 
 Plugin ASUS BT500 bluetooth usb dongle to rpi4b.
 sudo rfkill list
