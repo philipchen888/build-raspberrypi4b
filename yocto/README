@@ -10,19 +10,15 @@ Build yocto sdcard image for raspberrypi4b:
    rm -rf build config layers
    python3 bitbake/bin/bitbake-setup init --setup-dir-name $PWD --non-interactive ../patches/raspberrypi4b.conf.json raspberrypi4b
    cp ../patches/local.conf ./build/conf
-   mkdir -p ./layers/meta-raspberrypi/recipes-daemons/vsftpd/
-   vi ./layers/meta-raspberrypi/recipes-daemons/vsftpd/vsftpd_3.0.5.bbappend ( add
-   PACKAGECONFIG:remove = "tcp-wrappers"
-   EXTRA_OECONF:append = " --without-tcp-wrappers"
-   )
    . ./build/init-build-env
 
+   echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
    bitbake -s
    bitbake -c cleansstate u-boot linux-raspberrypi core-image-weston clang
    bitbake -k u-boot
    bitbake -k clang llvm-native clang-native rust-native
    bitbake -k linux-raspberrypi
-   bitbake -k llvm core-image-weston
+   bitbake -k core-image-weston
 
    The result is in ./tmp/deploy/images/raspberrypi4-64/core-image-weston-raspberrypi4-64.rootfs.wic.bz2
    bzip2 -d -f ./tmp/deploy/images/raspberrypi4-64/core-image-weston-raspberrypi4-64.rootfs.wic.bz2
@@ -40,12 +36,13 @@ Build yocto sdcard image for raspberrypi4b:
    dtoverlay=uart2 )
    sudo blkid /dev/sda2
    sudo vi /mnt/cmdline.txt ( delete dwc_otg.lpm_enable=0 net.ifnames=0, change /dev/mmcblk0p2 to PARTUUID=076c4a2a-02 , add video=HDMI-A-1:1920x1080@60,margin_left=60,margin_right=60,margin_top=40,margin_bottom=40 cfg80211.ieee80211_regdom=US )
-   sync
-   sudo umount /mnt
+   sync; sudo umount /mnt;
 
    sudo mount /dev/sda2 /mnt
-   sudo vi /mnt/etc/vsftpd.conf  ( change to tcp_wrappers=NO )
-   sudo vi /mnt/etc/network/interfaces ( delete everything after iface lo inet loopback )
+   sudo vi /mnt/etc/systemd/resolved.conf.d/10-dns.conf ( change to
+   [Resolve]
+   DNS=8.8.8.8 8.8.4.4
+   )
    sudo vi /mnt/etc/xdg/weston/weston.ini ( delete everything, add
    [core]
    xwayland=true

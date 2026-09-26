@@ -122,7 +122,7 @@ Steps to build raspberrypi4b sdcard image:
 
 19. cd ~/build-raspberrypi4b/buildroot        ( Build buildroot image )
 
-20. cd ~/build-raspberrypi4b/bookworm-flightaware  ( Build flightaware image )
+20. cd ~/build-raspberrypi4b/trixie-flightaware  ( Build flightaware image )
 
 21. cd ~/build-raspberrypi4b/bookworm-gpio    ( Build gpio and pn532nfc image )
 
